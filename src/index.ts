@@ -32,7 +32,7 @@ export const mediaGalleryPlugin =
                   list: {
                     ...(collection.admin?.components?.views?.list || {}),
                     // Direct component reference for better type safety and bundling
-                    Component: 'payload-media-gallery/client#MediaListView',
+                    Component: '@sitebytom/payload-media-gallery/client#MediaListView',
                     // If using locally (e.g. copied to /src/plugins/media-gallery), use:
                     // Component: '@/plugins/payload-media-gallery/components/MediaListView#MediaListView',
                   },
