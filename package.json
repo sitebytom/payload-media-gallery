@@ -56,7 +56,7 @@
     "prepublishOnly": "pnpm build",
     "lint": "biome check .",
     "lint:fix": "biome check . --write",
-    "release": "changeset publish --publish \"npm publish --access public --provenance\"",
+    "release": "changeset publish",
     "dev:payload": "cross-env PAYLOAD_CONFIG_PATH=./dev/src/payload.config.ts payload",
     "generate:importmap": "pnpm dev:payload generate:importmap",
     "generate:types": "pnpm dev:payload generate:types",
