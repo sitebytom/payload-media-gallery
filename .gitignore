@@ -51,3 +51,5 @@ yarn-error.log*
 /playwright-report/
 /blob-report/
 /playwright/.cache/.tmp-db-uri
+dev/src/.tmp-db-uri
+dev/src/.tmp-db-uri
