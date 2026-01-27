@@ -2,9 +2,27 @@
   &__item-wrapper {
     position: relative;
     border: 1px solid transparent;
+    z-index: 0; // Create new stacking context so inner z-indexes (20+) don't leak out
 
     &:hover,
     &--selection-mode {
+      .media-grid__edit-button {
+        opacity: 1;
+        visibility: visible;
+      }
+      .media-grid__expand-button {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .media-grid__select-checkbox {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    // Force visibility on touch devices or small screens
+    @media (hover: none) and (pointer: coarse), (max-width: 768px) {
       .media-grid__edit-button {
         opacity: 1;
         visibility: visible;
@@ -198,8 +216,8 @@ body.media-gallery-lightbox-open {
   &__overlay {
     position: absolute;
     inset: 0;
-    background: var(--theme-bg);
-    opacity: 0.98;
+    // Use color-mix to add transparency to the theme hex color
+    background: color-mix(in srgb, var(--theme-bg), transparent 5%); 
     backdrop-filter: blur(8px);
     border: none;
     cursor: default;
@@ -256,16 +274,15 @@ body.media-gallery-lightbox-open {
 
   // Header
   &__header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    position: relative; // Changed from absolute to prevent overlap
+    width: 100%;
     height: 80px;
     display: flex;
     justify-content: space-between;
     padding: 1.5rem;
     pointer-events: none;
     z-index: 100002;
+    flex-shrink: 0; // Don't shrink
 
     &-left {
       pointer-events: auto;
@@ -319,6 +336,17 @@ body.media-gallery-lightbox-open {
     padding: 2rem; // Restore inset padding
   }
 
+  // Mobile/Touch Improvements
+  @media (max-width: 768px), (hover: none) and (pointer: coarse) {
+    .media-gallery-lightbox__nav-btn {
+      display: none; // Hide arrows, rely on swipe
+    }
+
+    .media-gallery-lightbox__image {
+      padding: 0; // Full bleed on mobile
+    }
+  }
+
   // Simplified Fallbacks (Audio/Doc)
   &__audio-player, &__document-fallback {
     display: flex;
@@ -335,35 +363,78 @@ body.media-gallery-lightbox-open {
   
   &__audio-player { min-width: 300px; audio { width: 100%; margin-top: 1rem; } }
   
+  &__document-details {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    
+    h3 {
+      text-align: center;
+      margin: 0;
+      word-break: break-all;
+    }
+  }
+
   &__download-link {
-    display: inline-block;
-    padding: 0.5rem 1.5rem;
+    display: block; // Full width
+    width: 100%;
+    text-align: center;
+    padding: 0.75rem 1.5rem;
     background: var(--theme-text);
     color: var(--theme-bg);
     text-decoration: none;
     border-radius: 4px;
+    font-weight: 500;
+    
     &:hover { opacity: 0.8; }
   }
 
   // Thumbnails
+  &__footer-info {
+    width: 100%;
+    padding: 1rem;
+    text-align: center;
+    background: transparent;
+    color: var(--theme-text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    z-index: 100002;
+    // max-height: 80px; // Optional constraint
+    flex-shrink: 0; // Don't shrink
+  }
+
   &__thumbnails {
     width: 100%;
-    height: 100px;
-    background: var(--theme-bg);
+    height: 64px;
+    background: color-mix(in srgb, var(--theme-bg), transparent 50%);
     border-top: 1px solid var(--theme-elevation-150);
     z-index: 100002;
     transition: transform 0.2s ease;
+    flex-shrink: 0;
+    
+    // Move scrolling to the container
+    display: flex;
+    overflow-x: auto;
+    &::-webkit-scrollbar { display: none; }
     
     &.hidden { display: none; }
     
     &-track {
       display: flex;
       gap: 0.5rem;
-      overflow-x: auto;
       height: 100%;
       padding: 10px 2rem;
       align-items: center;
-      justify-content: center; // Center thumbnails
+      
+      // Safe center: center if fits, start if overflows
+      margin: 0 auto;
+      min-width: min-content; 
+
       &::-webkit-scrollbar { display: none; }
     }
   }
