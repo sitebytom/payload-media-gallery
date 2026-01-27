@@ -1,0 +1,120 @@
+{
+  "name": "@sitebytom/payload-media-gallery",
+  "version": "1.0.0",
+  "author": "sitebytom",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sitebytom/payload-media-gallery.git"
+  },
+  "homepage": "https://github.com/sitebytom/payload-media-gallery#readme",
+  "bugs": {
+    "url": "https://github.com/sitebytom/payload-media-gallery/issues"
+  },
+  "description": "A Payload CMS 3 plugin that enhances the Media List View with Grid, Masonry, and Lightbox views, including video previews.",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./client": {
+      "import": "./src/components/MediaListView.tsx",
+      "types": "./src/components/MediaListView.tsx",
+      "default": "./src/components/MediaListView.tsx"
+    }
+  },
+  "types": "./src/index.ts",
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "import": "./dist/index.js",
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./client": {
+        "import": "./dist/components/MediaListView.js",
+        "types": "./dist/components/MediaListView.d.ts",
+        "default": "./dist/components/MediaListView.js"
+      }
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "pnpm copyfiles && tsc",
+    "dev": "next dev dev",
+    "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
+    "clean": "rimraf {dist,*.tsbuildinfo}",
+    "prepublishOnly": "pnpm build",
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write",
+    "release": "changeset publish",
+    "dev:payload": "cross-env PAYLOAD_CONFIG_PATH=./dev/src/payload.config.ts payload",
+    "generate:importmap": "pnpm dev:payload generate:importmap",
+    "generate:types": "pnpm dev:payload generate:types",
+    "test": "pnpm test:int && pnpm test:e2e",
+    "test:e2e": "playwright test",
+    "test:int": "vitest run"
+  },
+  "engines": {
+    "node": "^18.20.2 || >=20.9.0",
+    "pnpm": "^9 || ^10"
+  },
+  "keywords": [
+    "payload",
+    "cms",
+    "plugin",
+    "media",
+    "gallery"
+  ],
+  "peerDependencies": {
+    "@payloadcms/ui": "^3.73.0",
+    "next": "^15.0.0 || ^16.0.0",
+    "payload": "^3.73.0",
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.12",
+    "@changesets/cli": "^2.29.8",
+    "@payloadcms/db-mongodb": "^3.73.0",
+    "@payloadcms/next": "^3.73.0",
+    "@payloadcms/richtext-lexical": "^3.73.0",
+    "@payloadcms/ui": "^3.73.0",
+    "@playwright/test": "^1.58.0",
+    "@types/node": "^25.0.10",
+    "@types/react": "^19.2.9",
+    "@types/react-dom": "^19.2.3",
+    "copyfiles": "^2.4.1",
+    "cross-env": "^10.1.0",
+    "graphql": "^16.12.0",
+    "mongodb-memory-server": "^11.0.1",
+    "next": "^16.1.4",
+    "payload": "^3.73.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "rimraf": "^6.1.2",
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3",
+    "vite-tsconfig-paths": "^6.0.5",
+    "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "esbuild",
+      "unrs-resolver"
+    ],
+    "ignoredBuiltDependencies": [
+      "mongodb-memory-server"
+    ]
+  },
+  "registry": "https://registry.npmjs.org/"
+}
