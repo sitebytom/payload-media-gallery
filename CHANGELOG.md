@@ -1,5 +1,11 @@
 # @sitebytom/payload-media-gallery
 
+## 1.0.3
+
+### Patch Changes
+
+- 3fa2a5c: Fix mobile control visibility, improve lightbox UX (swipe, layout, transparency)
+
 ## 1.0.2
 
 ### Patch Changes
