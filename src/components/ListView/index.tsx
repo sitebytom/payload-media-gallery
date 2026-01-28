@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom'
 import { Grid } from '../Gallery/Grid'
 import { Justified } from '../Gallery/Justified'
 import { Lightbox } from '../Lightbox'
+import { SelectionToggle } from './SelectionToggle'
 import { Toggle } from './Toggle'
 import '../../index.scss'
 
@@ -85,6 +86,7 @@ export const ListView: React.FC<any> = (props) => {
     ...props,
     beforeActions: [
       ...(props.beforeActions || []),
+      <SelectionToggle key="selection-toggle" />,
       ...viewOptions.map((viewOption) => (
         <Toggle
           key={`view-toggle-${viewOption}`}

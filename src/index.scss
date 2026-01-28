@@ -148,6 +148,13 @@
   }
 }
 
+.media-gallery-selection-toggle {
+  order: 9;
+  margin: 0 !important; // Override default payload margins
+  display: flex;
+  align-items: center;
+}
+
 // Global Z-Index Fixes
 body {
   &.media-gallery-lightbox-open {
