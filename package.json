@@ -46,8 +46,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "scripts": {
     "build": "pnpm copyfiles && tsc",
