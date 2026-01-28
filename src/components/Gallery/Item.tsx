@@ -2,11 +2,12 @@
 
 import { Button, CheckboxInput } from '@payloadcms/ui'
 import Link from 'next/link'
+import type React from 'react'
 import { memo, useEffect, useRef } from 'react'
-import { EditIcon, ExpandIcon } from '../Icons'
-import { MediaGalleryCard } from './MediaGalleryCard'
+import { EditIcon, ExpandIcon } from '../../icons'
+import { Card } from './Card'
 
-export const MediaGalleryItem = memo(
+export const Item = memo(
   ({
     doc,
     index,
@@ -54,14 +55,14 @@ export const MediaGalleryItem = memo(
         role="gridcell"
         aria-selected={isSelected}
         aria-label={doc.filename}
-        className={`media-grid__item-wrapper${selectedCount > 0 ? ' media-grid__item-wrapper--selection-mode' : ''}`}
+        className={`media-gallery-grid__item-wrapper${selectedCount > 0 ? ' media-gallery-grid__item-wrapper--selection-mode' : ''}`}
         tabIndex={-1}
       >
         <Link
           ref={linkRef}
           href={`/admin/collections/${slug}/${doc.id}`}
           prefetch={false}
-          className={`media-grid__item${focusedIndex === index ? ' media-grid__item--focused' : ''}`}
+          className={`media-gallery-grid__item${focusedIndex === index ? ' media-gallery-grid__item--focused' : ''}`}
           onFocus={() => onFocus(index)}
           onClick={(e: React.MouseEvent) => {
             if (e.metaKey || e.ctrlKey || e.shiftKey) {
@@ -72,8 +73,6 @@ export const MediaGalleryItem = memo(
             if (selectedCount > 0) {
               e.preventDefault()
               e.stopPropagation()
-              // Use hook directly for verifyable toggle, or fallback to prop if needed
-              // But onSelectionChange passed from Grid handles multi-select logic so we keep it.
               onSelectionChange(doc.id)
             }
             onOnClick(e, index)
@@ -83,22 +82,24 @@ export const MediaGalleryItem = memo(
             (e.ctrlKey || e.metaKey || e.shiftKey) && e.preventDefault()
           }
         >
-          <MediaGalleryCard
-            id={doc.id}
-            title={doc.filename}
-            previewUrl={useOriginal ? doc.url : doc.sizes?.thumbnail?.url || doc.url || undefined}
-            originalUrl={doc.url}
-            isSelected={isSelected}
-            selectedCount={selectedCount}
-            mimeType={doc.mimeType}
-            width={useOriginal ? doc.width : doc.sizes?.thumbnail?.width || doc.width}
-            height={useOriginal ? doc.height : doc.sizes?.thumbnail?.height || doc.height}
-            focalX={doc.focalX}
-            focalY={doc.focalY}
-            variant={variant}
-          />
+          <div className="media-gallery-item__card-wrapper">
+            <Card
+              id={doc.id}
+              title={doc.filename}
+              previewUrl={useOriginal ? doc.url : doc.sizes?.card?.url || doc.url}
+              originalUrl={doc.url}
+              mimeType={doc.mimeType}
+              isSelected={isSelected}
+              selectedCount={selectedCount}
+              width={useOriginal ? doc.width : doc.sizes?.thumbnail?.width || doc.width}
+              height={useOriginal ? doc.height : doc.sizes?.thumbnail?.height || doc.height}
+              focalX={doc.focalX}
+              focalY={doc.focalY}
+              variant={variant}
+            />
+          </div>
         </Link>
-        <div className="media-grid__select-checkbox">
+        <div className="media-gallery-grid__checkbox">
           <CheckboxInput
             checked={isSelected}
             onToggle={() => {
@@ -108,7 +109,7 @@ export const MediaGalleryItem = memo(
         </div>
         <Button
           buttonStyle="icon-label"
-          className="media-grid__expand-button"
+          className="media-gallery-grid__expand-btn"
           icon={<ExpandIcon />}
           margin={false}
           onClick={(e) => {
@@ -121,7 +122,7 @@ export const MediaGalleryItem = memo(
         />
         <Button
           buttonStyle="icon-label"
-          className="media-grid__edit-button"
+          className="media-gallery-grid__edit-btn"
           icon={<EditIcon />}
           margin={false}
           onClick={(e) => onQuickEdit(e, doc.id)}

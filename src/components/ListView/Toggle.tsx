@@ -1,11 +1,12 @@
 'use client'
 
 import { Button } from '@payloadcms/ui'
-import { GridViewIcon, JustifiedIcon, ListViewIcon } from '../Icons'
+import type React from 'react'
+import { GridViewIcon, JustifiedIcon, ListViewIcon } from '../../icons'
 
-type ViewType = 'list' | 'grid' | 'justified'
+import type { ViewType } from './index'
 
-interface ViewToggleButtonProps {
+interface ToggleProps {
   view: ViewType
   activeView: ViewType
   onToggle: (view: ViewType) => void
@@ -26,13 +27,13 @@ const VIEW_CONFIG: Record<ViewType, { icon: React.ReactNode; tooltip: string }> 
   },
 }
 
-export const ViewToggleButton = ({ view, activeView, onToggle }: ViewToggleButtonProps) => {
+export const Toggle = ({ view, activeView, onToggle }: ToggleProps) => {
   const config = VIEW_CONFIG[view]
 
   return (
     <Button
       buttonStyle="pill"
-      className={`folder-view-toggle-button${view === activeView ? ' folder-view-toggle-button--active' : ''}`}
+      className={`media-gallery-toggle${view === activeView ? ' media-gallery-toggle--active' : ''}`}
       icon={config.icon}
       margin={false}
       onClick={() => onToggle(view)}

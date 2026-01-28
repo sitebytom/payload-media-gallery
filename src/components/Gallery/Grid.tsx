@@ -1,9 +1,9 @@
+'use client'
 import { useCallback, useRef } from 'react'
-import { useGalleryManager } from '../hooks/useGalleryManager'
-import { MediaGalleryItem } from './MediaGalleryItem'
-import type { ViewType } from './MediaListView'
+import { useGalleryManager } from '../../hooks/useGalleryManager'
+import { Item } from './Item'
 
-export const MediaGalleryGrid = ({
+export const Grid = ({
   slug,
   onQuickEdit,
   docs,
@@ -49,10 +49,9 @@ export const MediaGalleryGrid = ({
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: using div for grid layout
-    <div className="item-card-grid media-grid" role="grid" ref={gridRef}>
-      {/* biome-ignore lint/suspicious/noExplicitAny: doc type is dynamic */}
-      {docs?.map((doc: any, index: number) => (
-        <MediaGalleryItem key={doc.id} {...getItemProps(doc, index)} />
+    <div className="item-card-grid media-gallery-grid" role="grid" ref={gridRef}>
+      {docs.map((doc, i) => (
+        <Item key={doc.id} {...getItemProps(doc, i)} />
       ))}
     </div>
   )

@@ -1,6 +1,6 @@
 {
   "name": "@sitebytom/payload-media-gallery",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": "sitebytom",
   "license": "MIT",
   "type": "module",
@@ -21,9 +21,9 @@
       "default": "./src/index.ts"
     },
     "./client": {
-      "types": "./src/components/MediaListView.tsx",
-      "import": "./src/components/MediaListView.tsx",
-      "default": "./src/components/MediaListView.tsx"
+      "types": "./src/components/ListView/index.tsx",
+      "import": "./src/components/ListView/index.tsx",
+      "default": "./src/components/ListView/index.tsx"
     }
   },
   "types": "./src/index.ts",
@@ -35,9 +35,9 @@
         "default": "./dist/index.js"
       },
       "./client": {
-        "types": "./dist/components/MediaListView.d.ts",
-        "import": "./dist/components/MediaListView.js",
-        "default": "./dist/components/MediaListView.js"
+        "types": "./dist/components/ListView/index.d.ts",
+        "import": "./dist/components/ListView/index.js",
+        "default": "./dist/components/ListView/index.js"
       }
     },
     "main": "./dist/index.js",
@@ -58,7 +58,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check . --write",
     "release": "changeset publish",
-    "dev:payload": "cross-env PAYLOAD_CONFIG_PATH=./dev/src/payload.config.ts payload",
+    "dev:payload": "cd dev && cross-env PAYLOAD_CONFIG_PATH=src/payload.config.ts payload",
     "generate:importmap": "pnpm dev:payload generate:importmap",
     "generate:types": "pnpm dev:payload generate:types",
     "test": "pnpm test:int && pnpm test:e2e",

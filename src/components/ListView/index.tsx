@@ -4,16 +4,16 @@ import { DefaultListView, useDocumentDrawer, useListQuery, usePreferences } from
 import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MediaGalleryGrid } from './MediaGalleryGrid'
-import { MediaGalleryJustified } from './MediaGalleryJustified'
-import { MediaGalleryLightbox } from './MediaGalleryLightbox'
-import { ViewToggleButton } from './ViewToggleButton'
-import '../index.scss'
+import { Grid } from '../Gallery/Grid'
+import { Justified } from '../Gallery/Justified'
+import { Lightbox } from '../Lightbox'
+import { Toggle } from './Toggle'
+import '../../index.scss'
 
 export type ViewType = 'list' | 'grid' | 'justified'
 
 // biome-ignore lint/suspicious/noExplicitAny: generic component props
-export const MediaListView: React.FC<any> = (props) => {
+export const ListView: React.FC<any> = (props) => {
   const router = useRouter()
   // biome-ignore lint/suspicious/noExplicitAny: props are dynamic
   const { collectionConfig } = props as any
@@ -21,10 +21,11 @@ export const MediaListView: React.FC<any> = (props) => {
   const PREFERENCE_KEY = `payload-${slug}-view`
 
   const { getPreference, setPreference } = usePreferences()
-  const { data } = useListQuery()
+  const { data: listData } = useListQuery()
 
-  const [view, setView] = useState<ViewType>('justified')
+  const [viewType, setViewType] = useState<ViewType>('justified')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
   const [editingID, setEditingID] = useState<string | number | null>(null)
@@ -43,7 +44,7 @@ export const MediaListView: React.FC<any> = (props) => {
     }
   }, [editingID, openTrigger, isDrawerOpen, openDrawer])
 
-  const onQuickEdit = useCallback((id: string | number) => {
+  const handleQuickEdit = useCallback((id: string | number) => {
     setEditingID(id)
     setOpenTrigger((t) => t + 1)
     openingPendingRef.current = true
@@ -62,9 +63,9 @@ export const MediaListView: React.FC<any> = (props) => {
     const fetchPreference = async () => {
       const savedView = await getPreference<ViewType>(PREFERENCE_KEY)
       if (savedView && ['list', 'grid', 'justified'].includes(savedView)) {
-        setView(savedView)
+        setViewType(savedView)
       } else {
-        setView('justified') // Default
+        setViewType('justified') // Default
       }
       setIsInitialized(true)
     }
@@ -73,7 +74,7 @@ export const MediaListView: React.FC<any> = (props) => {
   }, [getPreference, PREFERENCE_KEY])
 
   const toggleView = (newView: ViewType) => {
-    setView(newView)
+    setViewType(newView)
     setPreference<string>(PREFERENCE_KEY, newView)
   }
 
@@ -84,11 +85,11 @@ export const MediaListView: React.FC<any> = (props) => {
     ...props,
     beforeActions: [
       ...(props.beforeActions || []),
-      ...viewOptions.map((viewType) => (
-        <ViewToggleButton
-          key={`view-toggle-${viewType}`}
-          view={viewType}
-          activeView={view}
+      ...viewOptions.map((viewOption) => (
+        <Toggle
+          key={`view-toggle-${viewOption}`}
+          view={viewOption}
+          activeView={viewType}
           onToggle={toggleView}
         />
       )),
@@ -105,34 +106,41 @@ export const MediaListView: React.FC<any> = (props) => {
         BeforeListTable={
           <React.Fragment>
             {props.BeforeListTable}
-            {view === 'grid' && (
-              <MediaGalleryGrid
+            {viewType === 'grid' && (
+              <Grid
                 slug={slug}
-                onQuickEdit={onQuickEdit}
-                docs={data?.docs || []}
-                onLightbox={setLightboxIndex}
+                docs={listData?.docs || []}
+                onQuickEdit={handleQuickEdit}
+                onLightbox={(index) => {
+                  setLightboxIndex(index)
+                  setLightboxOpen(true)
+                }}
               />
             )}
-            {view === 'justified' && (
-              <MediaGalleryJustified
+
+            {viewType === 'justified' && (
+              <Justified
                 slug={slug}
-                onQuickEdit={onQuickEdit}
-                docs={data?.docs || []}
-                onLightbox={setLightboxIndex}
+                docs={listData?.docs || []}
+                onQuickEdit={handleQuickEdit}
+                onLightbox={(index) => {
+                  setLightboxIndex(index)
+                  setLightboxOpen(true)
+                }}
               />
             )}
           </React.Fragment>
         }
-        Table={view !== 'list' ? hideTable : props.Table}
+        Table={viewType !== 'list' ? hideTable : props.Table}
       />
-      {lightboxIndex !== null &&
-        data?.docs &&
+      {lightboxOpen &&
+        listData?.docs &&
         createPortal(
-          <MediaGalleryLightbox
-            docs={data.docs}
-            initialIndex={lightboxIndex}
-            onClose={() => setLightboxIndex(null)}
-            onQuickEdit={onQuickEdit}
+          <Lightbox
+            docs={listData.docs}
+            initialIndex={lightboxIndex ?? 0}
+            onClose={() => setLightboxOpen(false)}
+            onQuickEdit={handleQuickEdit}
           />,
           document.body,
         )}

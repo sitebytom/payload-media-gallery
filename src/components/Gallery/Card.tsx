@@ -3,14 +3,14 @@
 import { ShimmerEffect } from '@payloadcms/ui'
 import type React from 'react'
 
-interface MediaGalleryCardProps {
+interface CardProps {
   id: string | number
   title: string
   previewUrl?: string
   originalUrl?: string
+  mimeType?: string
   isSelected?: boolean
   selectedCount?: number
-  mimeType?: string
   width?: number
   height?: number
   focalX?: number
@@ -19,9 +19,10 @@ interface MediaGalleryCardProps {
 }
 
 import { useRef, useState } from 'react'
-import { FileIcon } from '../Icons'
+import { FileIcon } from '../../icons'
+import { isVideoMime } from '../../utils/media'
 
-export const MediaGalleryCard: React.FC<MediaGalleryCardProps> = ({
+export const Card: React.FC<CardProps> = ({
   title,
   previewUrl,
   originalUrl,
@@ -33,7 +34,7 @@ export const MediaGalleryCard: React.FC<MediaGalleryCardProps> = ({
   focalY,
   variant = 'default',
 }) => {
-  const isVideo = mimeType?.startsWith('video/')
+  const isVideo = isVideoMime(mimeType)
   const hasThumbnail = !!previewUrl
   const videoRef = useRef<HTMLVideoElement>(null)
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)

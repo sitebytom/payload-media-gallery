@@ -1,8 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useGalleryManager } from '../hooks/useGalleryManager'
-import { MediaGalleryItem } from './MediaGalleryItem'
+import { useGalleryManager } from '../../hooks/useGalleryManager'
+import { Item } from './Item'
 
 interface RowData {
   items: {
@@ -15,10 +15,10 @@ interface RowData {
   height: number
 }
 
-export const MediaGalleryJustified = ({
+export const Justified = ({
   slug,
-  onQuickEdit,
   docs,
+  onQuickEdit,
   onLightbox,
 }: {
   slug: string
@@ -208,7 +208,11 @@ export const MediaGalleryJustified = ({
   })
 
   return (
-    <div className="media-grid media-justified-js" ref={containerRef} style={{ width: '100%' }}>
+    <div
+      className="media-gallery-grid media-gallery-justified"
+      ref={containerRef}
+      style={{ width: '100%' }}
+    >
       {rows.map((row, rowIndex) => (
         <div
           key={rowIndex}
@@ -229,13 +233,7 @@ export const MediaGalleryJustified = ({
                 height: height,
               }}
             >
-              <MediaGalleryItem
-                {...getItemProps(doc, index)}
-                // Force items to fill the calculated space
-                // MediaGalleryCard needs to be flexible
-                useOriginal={false} // Use thumbnails
-                variant="overlay"
-              />
+              <Item key={doc.id} {...getItemProps(doc, index)} variant="overlay" />
             </div>
           ))}
         </div>
