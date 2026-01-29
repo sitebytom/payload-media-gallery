@@ -1,11 +1,11 @@
 import type { Config } from 'payload'
-import type { MediaGalleryPluginOptions } from './types.js'
+import type { PluginOptions } from './types.js'
 
 /**
  * A Payload CMS plugin that adds a Gallery View toggle to the List View of any Media collection.
  */
 export const mediaGalleryPlugin =
-  (options: MediaGalleryPluginOptions = {}) =>
+  (options: PluginOptions = {}) =>
   (config: Config): Config => {
     const { collections = ['media'], disabled = false } = options
 
@@ -32,9 +32,9 @@ export const mediaGalleryPlugin =
                   list: {
                     ...(collection.admin?.components?.views?.list || {}),
                     // Direct component reference for better type safety and bundling
-                    Component: '@sitebytom/payload-media-gallery/client#MediaListView',
+                    Component: '@sitebytom/payload-media-gallery/client#ListView',
                     // If using locally (e.g. copied to /src/plugins/media-gallery), use:
-                    // Component: '@/plugins/payload-media-gallery/components/MediaListView#MediaListView',
+                    // Component: '@/plugins/payload-media-gallery/components/ListView/index#ListView',
                   },
                 },
               },

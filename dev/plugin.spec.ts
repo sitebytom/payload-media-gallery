@@ -11,7 +11,7 @@ describe('mediaGalleryPlugin', () => {
           admin: {
             components: {},
           },
-        } as any,
+        },
       ],
     }) as Config
 
@@ -19,15 +19,13 @@ describe('mediaGalleryPlugin', () => {
     const plugin = mediaGalleryPlugin()
     const result = plugin(getMockConfig())
     const mediaCollection = result.collections?.find((c) => c.slug === 'media')
-    // @ts-expect-error
-    expect(mediaCollection?.admin?.components?.views?.list?.Component).toContain('MediaListView')
+    expect(mediaCollection?.admin?.components?.views?.list?.Component).toContain('ListView')
   })
 
   it('should disable plugin when disabled is true', () => {
     const plugin = mediaGalleryPlugin({ disabled: true })
     const result = plugin(getMockConfig())
     const mediaCollection = result.collections?.find((c) => c.slug === 'media')
-    // @ts-expect-error
     expect(mediaCollection?.admin?.components?.views?.list).toBeUndefined()
   })
 
@@ -39,7 +37,6 @@ describe('mediaGalleryPlugin', () => {
     })
     const result = plugin(getMockConfig())
     const mediaCollection = result.collections?.find((c) => c.slug === 'media')
-    // @ts-expect-error
-    expect(mediaCollection?.admin?.components?.views?.list?.Component).toContain('MediaListView')
+    expect(mediaCollection?.admin?.components?.views?.list?.Component).toContain('ListView')
   })
 })

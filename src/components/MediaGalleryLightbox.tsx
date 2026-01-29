@@ -42,10 +42,34 @@ export const MediaGalleryLightbox = ({
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
   const [isPlaying, setIsPlaying] = useState(false)
   const [showThumbnails, setShowThumbnails] = useState(true)
+  const [isClosing, setIsClosing] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [scale, setScale] = useState(1)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+
+  const dragStartRef = useRef({ x: 0, y: 0, hasDragged: false, startX: 0, startY: 0 })
+  const pinchRef = useRef({
+    startDist: 0,
+    initialScale: 1,
+    startX: 0,
+    startY: 0,
+    startPos: { x: 0, y: 0 },
+  })
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Focus management on mount
+  // Reset zoom state when index changes
   useEffect(() => {
+    // setIsLoading(true) // Removed to avoid race condition with ref callback
+    setScale(1)
+    setPosition({ x: 0, y: 0 })
+    setIsDragging(false)
+  }, [currentIndex])
+
+  // Focus management and mount animation
+  useEffect(() => {
+    setIsMounted(true)
     // Small timeout to ensure DOM is ready and previous focus events settle
     const timer = setTimeout(() => {
       containerRef.current?.focus()
@@ -59,22 +83,51 @@ export const MediaGalleryLightbox = ({
     }
   }, [])
 
+  const handleClose = useCallback(() => {
+    setIsClosing(true)
+    setTimeout(() => {
+      onClose()
+    }, 300) // Match CSS transition duration
+  }, [onClose])
+
   const handleNext = useCallback(() => {
+    setIsLoading(true)
     setCurrentIndex((prev) => (prev < docs.length - 1 ? prev + 1 : 0)) // Wrap around for slideshow
   }, [docs.length])
 
   const handlePrev = useCallback(() => {
+    setIsLoading(true)
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : docs.length - 1)) // Wrap around
   }, [docs.length])
 
+  // Preload next/prev images
+  useEffect(() => {
+    const preloadImage = (index: number) => {
+      const doc = docs[index]
+      if (!doc) return
+      const mime = getMimeType(doc.filename, doc.mimeType)
+      if (mime.startsWith('image/')) {
+        const img = new Image()
+        img.src = doc.url
+      }
+    }
+
+    const nextIndex = currentIndex < docs.length - 1 ? currentIndex + 1 : 0
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : docs.length - 1
+
+    preloadImage(nextIndex)
+    preloadImage(prevIndex)
+  }, [currentIndex, docs])
+
   // Slideshow logic
   useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (isPlaying) {
-      interval = setInterval(handleNext, 3000)
+    let timer: NodeJS.Timeout
+    if (isPlaying && !isLoading) {
+      // Only start timer when loading is done
+      timer = setTimeout(handleNext, 3000)
     }
-    return () => clearInterval(interval)
-  }, [isPlaying, handleNext])
+    return () => clearTimeout(timer)
+  }, [isPlaying, isLoading, handleNext])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent | KeyboardEvent) => {
@@ -93,14 +146,44 @@ export const MediaGalleryLightbox = ({
           handlePrev()
           break
         case 'Escape':
-          onClose()
+          handleClose()
           break
         case ' ': // Space to toggle play/pause
           setIsPlaying((p) => !p)
           break
+        case 'Tab': {
+          const focusable = containerRef.current?.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), audio, video, [contenteditable]',
+          )
+
+          if (!focusable || focusable.length === 0) break
+
+          const first = focusable[0]
+          const last = focusable[focusable.length - 1]
+
+          // If focus is outside, bring it in
+          if (!containerRef.current?.contains(document.activeElement)) {
+            e.preventDefault()
+            first.focus()
+            break
+          }
+
+          if (e.shiftKey) {
+            if (document.activeElement === first) {
+              e.preventDefault()
+              last.focus()
+            }
+          } else {
+            if (document.activeElement === last) {
+              e.preventDefault()
+              first.focus()
+            }
+          }
+          break
+        }
       }
     },
-    [handleNext, handlePrev, onClose],
+    [handleNext, handlePrev, handleClose, onClose],
   )
 
   // Global listener for safety (in case focus is lost)
@@ -139,7 +222,7 @@ export const MediaGalleryLightbox = ({
 
   return (
     <div
-      className="media-gallery-lightbox"
+      className={`media-gallery-lightbox ${isMounted ? 'media-gallery-lightbox--enter' : ''} ${isClosing ? 'media-gallery-lightbox--exit' : ''}`}
       ref={containerRef}
       tabIndex={-1} // Allow focus
       onKeyDown={handleKeyDown}
@@ -150,7 +233,7 @@ export const MediaGalleryLightbox = ({
       <button
         type="button"
         className="media-gallery-lightbox__overlay"
-        onClick={onClose}
+        onClick={handleClose}
         aria-label="Close lightbox"
       />
 
@@ -204,7 +287,7 @@ export const MediaGalleryLightbox = ({
           <button
             type="button"
             className="media-gallery-lightbox__btn media-gallery-lightbox__btn--close"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close"
           >
             <CloseIcon />
@@ -215,11 +298,13 @@ export const MediaGalleryLightbox = ({
       <div
         className="media-gallery-lightbox__image-container"
         onTouchStart={(e) => {
+          if (scale > 1) return // Disable swipe if zoomed
           const touch = e.changedTouches[0]
           // @ts-expect-error
           containerRef.current._touchStartX = touch.clientX
         }}
         onTouchEnd={(e) => {
+          if (scale > 1) return // Disable swipe if zoomed
           const touch = e.changedTouches[0]
           // @ts-expect-error
           const startX = containerRef.current._touchStartX
@@ -242,7 +327,6 @@ export const MediaGalleryLightbox = ({
         >
           <ChevronLeftIcon />
         </button>
-
         <button
           type="button"
           className="media-gallery-lightbox__nav-btn media-gallery-lightbox__nav-btn--next"
@@ -251,27 +335,373 @@ export const MediaGalleryLightbox = ({
         >
           <ChevronRightIcon />
         </button>
+        {isLoading && (
+          <div className="media-gallery-lightbox__spinner">
+            <div className="media-gallery-lightbox__spinner-icon" />
+          </div>
+        )}
         {isVideo && (
           <video
+            key={currentDoc.id}
             src={mediaUrl}
             controls
             autoPlay={isPlaying}
             className="media-gallery-lightbox__image"
-            style={{ maxHeight: '100%', maxWidth: '100%' }}
+            style={{ maxHeight: '100%', maxWidth: '100%', opacity: isLoading ? 0 : 1 }}
+            onLoadedData={() => setIsLoading(false)}
+            onError={() => setIsLoading(false)}
           >
             <track kind="captions" />
           </video>
         )}
-
         {isImage && (
           /* biome-ignore lint: using standard img for external urls */
           <img
+            key={currentDoc.id}
             src={mediaUrl}
             className="media-gallery-lightbox__image"
             alt={currentDoc.alt || currentDoc.filename}
+            ref={(img) => {
+              if (img?.complete) setIsLoading(false)
+            }}
+            onLoad={() => setIsLoading(false)}
+            onError={() => setIsLoading(false)}
+            draggable={false}
+            style={{
+              opacity: isLoading ? 0 : 1,
+              transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+              cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in',
+              transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)',
+              touchAction: 'none',
+              padding: scale > 1 ? 0 : undefined,
+            }}
+            onClick={(e) => {
+              // Prevent click processing if we dragged significantly
+              if (dragStartRef.current.hasDragged) {
+                // Reset flag
+                dragStartRef.current.hasDragged = false
+                return
+              }
+
+              // Single tap to toggle zoom
+              if (scale > 1) {
+                setScale(1)
+                setPosition({ x: 0, y: 0 })
+              } else {
+                // Zoom to cursor (Focal Point)
+                const viewportCenterX = window.innerWidth / 2
+                const viewportCenterY = window.innerHeight / 2
+                const mouseX = e.clientX - viewportCenterX
+                const mouseY = e.clientY - viewportCenterY
+
+                const newScale = 2.5
+
+                let newX = mouseX * (1 - newScale)
+                let newY = mouseY * (1 - newScale)
+
+                // Apply strict bounds (approximated with current dims)
+                const img = e.currentTarget as HTMLImageElement
+                const cw = window.innerWidth
+                const ch = window.innerHeight
+                const iw = img.offsetWidth
+                const ih = img.offsetHeight
+                const scaledW = iw * newScale
+                const scaledH = ih * newScale
+
+                const BOUNDS_BUFFER = 80
+                const xLimit = (scaledW <= cw ? 0 : (scaledW - cw) / 2) + BOUNDS_BUFFER
+                const yLimit = (scaledH <= ch ? 0 : (scaledH - ch) / 2) + BOUNDS_BUFFER
+
+                newX = Math.max(-xLimit, Math.min(xLimit, newX))
+                newY = Math.max(-yLimit, Math.min(yLimit, newY))
+
+                setScale(newScale)
+                setPosition({ x: newX, y: newY })
+              }
+            }}
+            onTouchStart={(e) => {
+              if (e.touches.length === 2) {
+                // Pinch start
+                const dist = Math.hypot(
+                  e.touches[0].clientX - e.touches[1].clientX,
+                  e.touches[0].clientY - e.touches[1].clientY,
+                )
+                // Calculate center of pinch for focal point
+                const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2
+                const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2
+
+                pinchRef.current = {
+                  startDist: dist,
+                  initialScale: scale,
+                  startX: cx,
+                  startY: cy,
+                  startPos: { x: position.x, y: position.y },
+                }
+              } else if (e.touches.length === 1 && scale > 1) {
+                // Pan start
+                setIsDragging(true)
+                dragStartRef.current = {
+                  x: e.touches[0].clientX - position.x,
+                  y: e.touches[0].clientY - position.y,
+                  hasDragged: false,
+                  startX: e.touches[0].clientX,
+                  startY: e.touches[0].clientY,
+                }
+              }
+            }}
+            onTouchMove={(e) => {
+              if (e.touches.length === 2) {
+                // Pinch move with focal point update
+                e.preventDefault()
+                const dist = Math.hypot(
+                  e.touches[0].clientX - e.touches[1].clientX,
+                  e.touches[0].clientY - e.touches[1].clientY,
+                )
+
+                // Current pinch center (in viewport coords)
+                const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2
+                const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2
+
+                // Relative to viewport center
+                const viewportCenterX = window.innerWidth / 2
+                const viewportCenterY = window.innerHeight / 2
+                const currentPinchX = cx - viewportCenterX
+                const currentPinchY = cy - viewportCenterY
+                const startPinchX = pinchRef.current.startX - viewportCenterX
+                const startPinchY = pinchRef.current.startY - viewportCenterY
+
+                const ratio = dist / pinchRef.current.startDist
+                const newScale = Math.min(Math.max(1, pinchRef.current.initialScale * ratio), 4)
+
+                // Calculate new position to keep the pinch focal point stable
+                // Formula: NewPos = CurrentPinchCenter - (StartPinchCenter - StartPos) * (NewScale / StartScale)
+
+                let newX = 0
+                let newY = 0
+
+                if (newScale > 1) {
+                  const scaleRatio = newScale / pinchRef.current.initialScale
+                  // P_img = (StartPc - StartPos)
+                  // NewPos = CurrentPc - P_img * ScaleRatio
+                  const pImgX = startPinchX - pinchRef.current.startPos.x
+                  const pImgY = startPinchY - pinchRef.current.startPos.y
+
+                  newX = currentPinchX - pImgX * scaleRatio
+                  newY = currentPinchY - pImgY * scaleRatio
+                }
+
+                if (newScale === 1) {
+                  setPosition({ x: 0, y: 0 })
+                } else {
+                  if (containerRef.current) {
+                    const img = e.currentTarget as HTMLImageElement
+                    const container = containerRef.current
+                    const cw = container.clientWidth
+                    const ch = container.clientHeight
+                    const iw = img.offsetWidth || cw
+                    const ih = img.offsetHeight || ch
+
+                    const scaledW = iw * newScale
+                    const scaledH = ih * newScale
+
+                    const BOUNDS_BUFFER = 80
+                    const xLimit = (scaledW <= cw ? 0 : (scaledW - cw) / 2) + BOUNDS_BUFFER
+                    const yLimit = (scaledH <= ch ? 0 : (scaledH - ch) / 2) + BOUNDS_BUFFER
+
+                    newX = Math.max(-xLimit, Math.min(xLimit, newX))
+                    newY = Math.max(-yLimit, Math.min(yLimit, newY))
+
+                    setPosition({ x: newX, y: newY })
+                  }
+                }
+
+                setScale(newScale)
+              } else if (e.touches.length === 1 && isDragging && scale > 1) {
+                e.preventDefault()
+                const cx = e.touches[0].clientX
+                const cy = e.touches[0].clientY
+
+                // Check drag control
+                if (!dragStartRef.current.hasDragged) {
+                  const moveDist = Math.hypot(
+                    cx - dragStartRef.current.startX,
+                    cy - dragStartRef.current.startY,
+                  )
+                  if (moveDist > 5) dragStartRef.current.hasDragged = true
+                }
+
+                if (dragStartRef.current.hasDragged) {
+                  // Update position
+                  let newX = cx - dragStartRef.current.x
+                  let newY = cy - dragStartRef.current.y
+
+                  if (containerRef.current) {
+                    const img = e.currentTarget as HTMLImageElement
+                    const container = containerRef.current
+                    const cw = container.clientWidth
+                    const ch = container.clientHeight
+                    const iw = img.offsetWidth
+                    const ih = img.offsetHeight
+
+                    const scaledW = iw * scale
+                    const scaledH = ih * scale
+
+                    const BOUNDS_BUFFER = 80
+                    const xLimit = (scaledW <= cw ? 0 : (scaledW - cw) / 2) + BOUNDS_BUFFER
+                    const yLimit = (scaledH <= ch ? 0 : (scaledH - ch) / 2) + BOUNDS_BUFFER
+
+                    newX = Math.max(-xLimit, Math.min(xLimit, newX))
+                    newY = Math.max(-yLimit, Math.min(yLimit, newY))
+                  }
+
+                  setPosition({ x: newX, y: newY })
+                }
+              }
+            }}
+            onTouchEnd={() => {
+              setIsDragging(false)
+            }}
+            onWheel={(e) => {
+              // Focal point zoom
+              e.preventDefault()
+
+              const delta = e.deltaY * -0.002
+              const newScale = Math.min(Math.max(1, scale + delta), 4)
+
+              if (newScale === 1) {
+                setPosition({ x: 0, y: 0 })
+              } else {
+                if (containerRef.current) {
+                  const img = e.currentTarget as HTMLImageElement
+                  const container = containerRef.current
+                  const rect = container.getBoundingClientRect()
+                  const cw = container.clientWidth
+                  const ch = container.clientHeight
+                  const cx = cw / 2
+                  const cy = ch / 2
+
+                  // Mouse relative to viewport center
+                  const mouseX = e.clientX - (rect.left + cx)
+                  const mouseY = e.clientY - (rect.top + cy)
+
+                  // "Virtual" cursor pos on image before zoom
+                  const imgX = (mouseX - position.x) / scale
+                  const imgY = (mouseY - position.y) / scale
+
+                  // New pos to keep cursor on same img point
+                  let newX = mouseX - imgX * newScale
+                  let newY = mouseY - imgY * newScale
+
+                  // Apply bounds
+                  const iw = img.offsetWidth || cw
+                  const ih = img.offsetHeight || ch
+                  const scaledW = iw * newScale
+                  const scaledH = ih * newScale
+
+                  const BOUNDS_BUFFER = 80
+                  const xLimit = (scaledW <= cw ? 0 : (scaledW - cw) / 2) + BOUNDS_BUFFER
+                  const yLimit = (scaledH <= ch ? 0 : (scaledH - ch) / 2) + BOUNDS_BUFFER
+
+                  newX = Math.max(-xLimit, Math.min(xLimit, newX))
+                  newY = Math.max(-yLimit, Math.min(yLimit, newY))
+
+                  setPosition({ x: newX, y: newY })
+                }
+              }
+
+              setScale(newScale)
+            }}
+            onMouseDown={(e) => {
+              if (scale > 1) {
+                e.preventDefault()
+                setIsDragging(true)
+                dragStartRef.current = {
+                  x: e.clientX - position.x,
+                  y: e.clientY - position.y,
+                  hasDragged: false,
+                  startX: e.clientX,
+                  startY: e.clientY,
+                }
+              }
+            }}
+            onMouseMove={(e) => {
+              if (isDragging && scale > 1) {
+                e.preventDefault()
+
+                // Track drag distance
+                const moveDist = Math.hypot(
+                  e.clientX - dragStartRef.current.startX,
+                  e.clientY - dragStartRef.current.startY,
+                )
+                if (moveDist > 5) dragStartRef.current.hasDragged = true
+
+                if (dragStartRef.current.hasDragged) {
+                  let newX = e.clientX - dragStartRef.current.x
+                  let newY = e.clientY - dragStartRef.current.y
+
+                  // Use robust bounds like onTouchMove
+                  if (containerRef.current) {
+                    const img = e.currentTarget as HTMLImageElement
+                    const container = containerRef.current
+                    const cw = container.clientWidth
+                    const ch = container.clientHeight
+                    const iw = img.offsetWidth
+                    const ih = img.offsetHeight
+
+                    const scaledW = iw * scale
+                    const scaledH = ih * scale
+
+                    const BOUNDS_BUFFER = 80
+                    const xLimit = (scaledW <= cw ? 0 : (scaledW - cw) / 2) + BOUNDS_BUFFER
+                    const yLimit = (scaledH <= ch ? 0 : (scaledH - ch) / 2) + BOUNDS_BUFFER
+
+                    newX = Math.max(-xLimit, Math.min(xLimit, newX))
+                    newY = Math.max(-yLimit, Math.min(yLimit, newY))
+                  }
+
+                  setPosition({ x: newX, y: newY })
+                }
+              }
+            }}
+            onMouseUp={() => setIsDragging(false)}
+            onMouseLeave={() => setIsDragging(false)}
+            onDoubleClick={(e) => {
+              if (scale > 1) {
+                setScale(1)
+                setPosition({ x: 0, y: 0 })
+              } else {
+                // Double click focal zoom
+                const viewportCenterX = window.innerWidth / 2
+                const viewportCenterY = window.innerHeight / 2
+                const mouseX = e.clientX - viewportCenterX
+                const mouseY = e.clientY - viewportCenterY
+
+                const newScale = 2.5
+
+                let newX = mouseX * (1 - newScale)
+                let newY = mouseY * (1 - newScale)
+
+                const img = e.currentTarget as HTMLImageElement
+                const cw = window.innerWidth
+                const ch = window.innerHeight
+                const iw = img.offsetWidth
+                const ih = img.offsetHeight
+                const scaledW = iw * newScale
+                const scaledH = ih * newScale
+
+                const BOUNDS_BUFFER = 80
+                const xLimit = (scaledW <= cw ? 0 : (scaledW - cw) / 2) + BOUNDS_BUFFER
+                const yLimit = (scaledH <= ch ? 0 : (scaledH - ch) / 2) + BOUNDS_BUFFER
+
+                newX = Math.max(-xLimit, Math.min(xLimit, newX))
+                newY = Math.max(-yLimit, Math.min(yLimit, newY))
+
+                setScale(newScale)
+                setPosition({ x: newX, y: newY })
+              }
+            }}
           />
         )}
-
         {isAudio && (
           <div className="media-gallery-lightbox__audio-player">
             <div className="media-gallery-lightbox__audio-icon">
@@ -282,7 +712,6 @@ export const MediaGalleryLightbox = ({
             </audio>
           </div>
         )}
-
         {isDocument && (
           <div className="media-gallery-lightbox__document-fallback">
             <div className="media-gallery-lightbox__document-icon">
@@ -313,7 +742,10 @@ export const MediaGalleryLightbox = ({
               key={doc.id}
               doc={doc}
               isActive={i === currentIndex}
-              onClick={() => setCurrentIndex(i)}
+              onClick={() => {
+                setIsLoading(true)
+                setCurrentIndex(i)
+              }}
             />
           ))}
         </div>

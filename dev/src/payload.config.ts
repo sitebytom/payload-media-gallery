@@ -51,6 +51,7 @@ const buildConfigWithMemoryDB = async () => {
     collections: [
       {
         slug: 'media',
+        folders: true,
         upload: {
           staticDir: path.resolve(dirname, '../public/media'),
           adminThumbnail: 'thumbnail',
