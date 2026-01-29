@@ -1,18 +1,15 @@
 ![Payload Media Gallery](.github/assets/banner.webp)
 
 # Payload Media Gallery Plugin
-A Payload CMS 3 plugin that enhances the dashboard media collection view. It adds view toggles for justified and grid layouts while keeping the original list view. Features include quick edit drawer, bulk selection, focal point cropping and a lightbox for images, video playback, and audio files.
-
+A Payload CMS 3 plugin that enhances the dashboard media collection view. It adds view toggles for justified and grid layouts while keeping the original list view. Features include quick edit drawer, bulk selection and a lightbox for images, video playback, and audio files.
 
 ## Features
-- **Justified, Grid and List Layouts** (Justified as default).
-- **Lightbox** for images, video playback, and audio files.
-- **Focal Point Support** for consistent cropping.
-- **Document handling** with graceful fallbacks and download links.
-- **Video Previews** on hover.
+- **Layouts**: Toggle between **Justified**, **Grid**, and **List** views.
 - **Quick Edit** via native Payload drawers.
-- **Bulk Selection** with keyboard modifier support.
-- **Payload-Native UI** for a seamless experience.
+- **Bulk Selection** with keyboard modifiers (Cmd/Ctrl/Shift + Click).
+- **Lightbox**: Immersive viewer with zoom, pan, keyboard navigation, and touch support.
+- **Rich Media**: Supports images, audio, and video playback with hover previews.
+- **Payload-Native UI** that fits right into your dashboard.
 
 ## Installation
 ```bash

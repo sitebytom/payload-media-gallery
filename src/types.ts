@@ -1,4 +1,4 @@
-export interface MediaGalleryPluginOptions {
+export interface PluginOptions {
   /**
    * Collections to enable the gallery view for.
    * Can be an array of collection slugs, e.g. ['media']

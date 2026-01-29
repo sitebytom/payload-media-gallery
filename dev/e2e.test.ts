@@ -18,8 +18,8 @@ test('should navigate to media collection', async ({ page }) => {
   await expect(page).toHaveURL(/\/collections\/media/)
 
   // Check for gallery toggle button (plugin specific)
-  // We use the custom class added in MediaListView.tsx. There are two buttons (List/Gallery).
-  const toggleButtons = page.locator('button.folder-view-toggle-button')
+  // We use the custom class added in MediaListView.tsx. There are three buttons (List/Grid/Justified).
+  const toggleButtons = page.locator('button.media-gallery-toggle')
   await expect(toggleButtons.first()).toBeVisible()
   await expect(toggleButtons).toHaveCount(3)
 })

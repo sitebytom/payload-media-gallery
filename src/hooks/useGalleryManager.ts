@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 
-type UseGalleryManagerProps = {
+type GalleryManagerProps = {
   // biome-ignore lint/suspicious/noExplicitAny: generic doc
   docs: any[]
   slug: string
@@ -25,7 +25,7 @@ export const useGalleryManager = ({
   onLightbox,
   columns = 1,
   containerRef: providedRef,
-}: UseGalleryManagerProps) => {
+}: GalleryManagerProps) => {
   const router = useRouter()
   const { selected, setSelection, count } = useSelection()
 
