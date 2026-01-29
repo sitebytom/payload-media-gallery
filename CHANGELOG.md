@@ -1,5 +1,11 @@
 # @sitebytom/payload-media-gallery
 
+## 1.0.2
+
+### Patch Changes
+
+- 6d343ca: Dev experience improvements (fixed DB double-start) and README updates.
+
 ## 1.0.1
 
 ### Patch Changes

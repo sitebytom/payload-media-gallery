@@ -1,6 +1,6 @@
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import { MongoMemoryServer } from 'mongodb-memory-server'
+import fs from 'fs'
 import path from 'path'
 import { buildConfig } from 'payload'
 import sharp from 'sharp'
@@ -12,27 +12,35 @@ import { testEmailAdapter } from './testEmailAdapter'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-if (!process.env.ROOT_DIR) {
-  process.env.ROOT_DIR = dirname
-}
+const uriFile = path.resolve(dirname, '.tmp-db-uri')
 
-// Declare global for MongoMemoryServer to prevent multiple instances during dev hot reloads
-declare global {
-  var _mongoMemoryServer: MongoMemoryServer | undefined
+const getDatabaseUri = async (): Promise<string> => {
+  if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+    return process.env.DATABASE_URI || ''
+  }
+
+  // In development, we expect dev/server.js to have started the DB and written the URI
+  // We poll for it briefly in case of startup race conditions
+  const maxWait = 10000 // 10 seconds
+  const start = Date.now()
+
+  while (Date.now() - start < maxWait) {
+    if (fs.existsSync(uriFile)) {
+      const uri = fs.readFileSync(uriFile, 'utf-8').trim()
+      if (uri) return uri
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+
+  throw new Error(
+    'Could not find MongoDB URI at ' +
+      uriFile +
+      '. Please make sure you are running via "pnpm dev".',
+  )
 }
 
 const buildConfigWithMemoryDB = async () => {
-  if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
-    // Increase timeout to avoid startup failures
-    process.env.MONGOMS_LAUNCH_TIMEOUT = '30000'
-
-    if (!global._mongoMemoryServer) {
-      global._mongoMemoryServer = await MongoMemoryServer.create()
-      console.log('✅ Created new MongoMemoryServer instance')
-    }
-
-    process.env.DATABASE_URI = global._mongoMemoryServer.getUri()
-  }
+  const databaseUri = typeof window === 'undefined' ? await getDatabaseUri() : ''
 
   return buildConfig({
     admin: {
@@ -43,52 +51,21 @@ const buildConfigWithMemoryDB = async () => {
     collections: [
       {
         slug: 'media',
-        folders: true,
         upload: {
-          // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload
           staticDir: path.resolve(dirname, '../public/media'),
           adminThumbnail: 'thumbnail',
           focalPoint: true,
           imageSizes: [
-            {
-              name: 'thumbnail',
-              width: 300,
-            },
-            {
-              name: 'square',
-              width: 500,
-              height: 500,
-            },
-            {
-              name: 'small',
-              width: 600,
-            },
-            {
-              name: 'medium',
-              width: 900,
-            },
-            {
-              name: 'large',
-              width: 1400,
-            },
-            {
-              name: 'xlarge',
-              width: 1920,
-            },
-            {
-              name: 'og',
-              width: 1200,
-              height: 630,
-              crop: 'center',
-            },
+            { name: 'thumbnail', width: 300 },
+            { name: 'square', width: 500, height: 500 },
+            { name: 'small', width: 600 },
+            { name: 'medium', width: 900 },
+            { name: 'large', width: 1400 },
+            { name: 'xlarge', width: 1920 },
+            { name: 'og', width: 1200, height: 630, crop: 'center' },
           ],
         },
-        fields: [
-          {
-            name: 'alt',
-            type: 'text',
-          },
-        ],
+        fields: [{ name: 'alt', type: 'text' }],
       },
     ],
     editor: lexicalEditor(),
@@ -97,16 +74,14 @@ const buildConfigWithMemoryDB = async () => {
       outputFile: path.resolve(dirname, 'payload-types.ts'),
     },
     db: mongooseAdapter({
-      url: process.env.DATABASE_URI || '',
+      url: databaseUri,
     }),
     sharp,
     email: testEmailAdapter,
     plugins: [
       mediaGalleryPlugin({
-        disabled: false, // Optional
-        collections: {
-          media: true, // Enable for specific collections
-        },
+        disabled: false,
+        collections: { media: true },
       }),
     ],
     onInit: async (payload) => {
