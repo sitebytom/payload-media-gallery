@@ -1,5 +1,11 @@
 # @sitebytom/payload-media-gallery
 
+## 1.0.7
+
+### Patch Changes
+
+- cca74ce: Replace local useZoomPan hook with official @sitebytom/use-zoom-pan npm package (https://github.com/sitebytom/use-zoom-pan). Simplified Lightbox implementation and fixed interaction hit-areas.
+
 ## 1.0.6
 
 ### Patch Changes
