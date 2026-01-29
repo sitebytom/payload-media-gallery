@@ -43,9 +43,11 @@ yarn-error.log*
 /dev/media
 /dev/public/media/*
 !/dev/public/media/.gitkeep
-
+/dev/.tmp-db-uri
+/dev/.tmp-db-lock
+    
 # Playwright
 /test-results/
 /playwright-report/
 /blob-report/
-/playwright/.cache/
+/playwright/.cache/.tmp-db-uri
