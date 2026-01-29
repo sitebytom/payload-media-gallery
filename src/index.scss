@@ -1,0 +1,500 @@
+.media-grid {
+  &__item-wrapper {
+    position: relative;
+    border: 1px solid transparent;
+
+    &:hover,
+    &--selection-mode {
+      .media-grid__edit-button {
+        opacity: 1;
+        visibility: visible;
+      }
+      .media-grid__expand-button {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .media-grid__select-checkbox {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+
+  &__select-checkbox {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 21; // Above focused card (20)
+
+    // Ensure the checkbox doesn't shrink
+    flex-shrink: 0;
+
+    // Override payload checkbox bg and size to make it pop over image
+    .checkbox-input__input {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--theme-elevation-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .checkbox-input__icon {
+        width: 20px;
+        height: 20px;
+      }
+    }
+  }
+
+  &__action-button {
+    position: absolute;
+    top: 0.6rem;
+    z-index: 22; // Above checkbox and focused card
+    opacity: 0;
+    visibility: hidden;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    background-color: var(--theme-elevation-100);
+    border: 1px solid var(--theme-elevation-200);
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px; // Ensure consistency
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--theme-elevation-200);
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+      color: var(--theme-elevation-800);
+    }
+  }
+
+  &__edit-button {
+    @extend .media-grid__action-button;
+    right: 3.5rem;
+  }
+
+  &__expand-button {
+     @extend .media-grid__action-button;
+     right: 0.6rem;
+  }
+
+  &__item {
+    // Apply native Payload focus ring to the card when the link is focused
+    // Both for native focus and our manual keyboard navigation state
+    &:focus-visible,
+    &--focused {
+      outline: none; // Remove default browser outline
+      
+      .folder-file-card {
+        outline: var(--accessibility-outline);
+        outline-offset: 2px;
+        z-index: 20; // Ensure it stays above neighbors
+      }
+    }
+  }
+}
+
+// Ensure the toggle buttons match Payload's native look and appear at the end of the search bar actions
+.folder-view-toggle-button {
+  order: 10; // Moves it after native column/filter pills which default to order 0
+  padding: 0;
+  background-color: transparent;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  justify-content: center;
+
+  &:hover {
+    background-color: var(--theme-elevation-100);
+  }
+
+  &--active {
+    background-color: var(--theme-elevation-150);
+  }
+
+  .btn__icon {
+    width: 20px;
+    height: 20px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+
+// Global Z-Index Fixes
+body.media-gallery-lightbox-open {
+  .template-default__nav-toggler-wrapper {
+    z-index: 20;
+  }
+}
+// Custom Media Card Styles (Native Payload Overrides)
+.folder-file-card {
+    // &--selected details handled by native Payload element
+    // We only override border/bg via vars if absolutely needed,
+    // but the native class should handle most of it.
+    
+    border-color: var(--card-border-color) !important;
+    background-color: var(--card-bg-color) !important;
+
+  // Global 1:1 ratio for file cards (fallback icon)
+  &:has(.folder-file-card__preview-area .icon--document) {
+      
+      .folder-file-card__preview-area {
+          aspect-ratio: 1 / 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          
+          .icon--document {
+              width: 100%;
+              height: 100%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              
+              svg {
+                  width: 48px;
+                  height: 48px;
+                  color: var(--theme-elevation-500);
+              }
+          }
+      }
+  }
+
+
+
+  &__skeleton {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// Lightbox Styles
+.media-gallery-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--theme-bg);
+    opacity: 0.98;
+    backdrop-filter: blur(8px);
+    border: none;
+    cursor: default;
+  }
+
+  // Shared Button Style
+  %lightbox-btn {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--theme-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+
+    &:hover { background-color: var(--theme-elevation-100); }
+    &:active { background-color: var(--theme-elevation-150); }
+    
+    &--active {
+      background-color: var(--theme-text);
+      color: var(--theme-bg);
+      &:hover { background-color: var(--theme-elevation-800); }
+    }
+  }
+
+  &__btn {
+    @extend %lightbox-btn;
+    width: 40px;
+    height: 40px;
+    
+    svg { width: 20px; height: 20px; }
+  }
+
+  &__nav-btn {
+    @extend %lightbox-btn;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    z-index: 100001;
+    border-radius: 50%;
+    background-color: var(--theme-elevation-50);
+    border: 1px solid var(--theme-elevation-150);
+
+    svg { width: 24px; height: 24px; }
+  }
+
+  &__nav-btn--prev { left: 1.5rem; }
+  &__nav-btn--next { right: 1.5rem; }
+
+  // Header
+  &__header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    padding: 1.5rem;
+    pointer-events: none;
+    z-index: 100002;
+
+    &-left {
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column; // Stack counter and info
+      gap: 0.25rem;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    &-right {
+      pointer-events: auto;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+  }
+
+  &__info {
+    color: var(--theme-text);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  &__filename { font-size: 1.25rem; font-weight: 700; }
+  &__description { font-size: 0.85rem; opacity: 0.8; }
+  &__counter { font-size: 1.5rem; font-weight: 300; color: var(--theme-elevation-500); }
+  &__separator { width: 1px; height: 24px; background: var(--theme-elevation-200); margin: 0 0.5rem; }
+
+  // Main Content
+  &__image-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    z-index: 100000;
+    pointer-events: none;
+    
+    * { pointer-events: auto; }
+  }
+
+  &__image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    user-select: none;
+    padding: 2rem; // Restore inset padding
+  }
+
+  // Simplified Fallbacks (Audio/Doc)
+  &__audio-player, &__document-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    background: var(--theme-elevation-50);
+    border-radius: 8px;
+    border: 1px solid var(--theme-elevation-150);
+    
+    svg { width: 48px; height: 48px; color: var(--theme-elevation-500); }
+  }
+  
+  &__audio-player { min-width: 300px; audio { width: 100%; margin-top: 1rem; } }
+  
+  &__download-link {
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    background: var(--theme-text);
+    color: var(--theme-bg);
+    text-decoration: none;
+    border-radius: 4px;
+    &:hover { opacity: 0.8; }
+  }
+
+  // Thumbnails
+  &__thumbnails {
+    width: 100%;
+    height: 100px;
+    background: var(--theme-bg);
+    border-top: 1px solid var(--theme-elevation-150);
+    z-index: 100002;
+    transition: transform 0.2s ease;
+    
+    &.hidden { display: none; }
+    
+    &-track {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      height: 100%;
+      padding: 10px 2rem;
+      align-items: center;
+      justify-content: center; // Center thumbnails
+      &::-webkit-scrollbar { display: none; }
+    }
+  }
+
+  &__thumbnail-btn {
+    @extend %lightbox-btn;
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--theme-elevation-200);
+    background: var(--theme-elevation-50);
+    opacity: 0.6;
+    padding: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    &:hover { opacity: 0.9; border-color: var(--theme-elevation-400); }
+    &--active { opacity: 1; border-color: var(--theme-text) !important; }
+    
+    img, video { width: 100%; height: 100%; object-fit: cover; }
+    
+    // Fallback Icons in Thumbnails
+    .media-gallery-lightbox__thumbnail-fallback,
+    .media-gallery-lightbox__thumbnail-overlay {
+       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+       background: rgba(255,255,255,0.3);
+       svg { width: 20px; height: 20px; color: var(--theme-elevation-800); }
+    }
+  }
+}
+
+
+// Justified View Container
+.media-justified-js {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+
+  .media-grid__item-wrapper,
+  .media-grid__item {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: block;
+  }
+}
+
+// Overlay Card Variant (Used for Justified)
+.folder-file-card--overlay {
+     height: 100%;
+     width: 100%;
+     border: 1px solid var(--theme-elevation-100);
+     border-radius: 4px;
+     overflow: hidden;
+     
+     // Hover state (only for non-selected items)
+     &:not(.folder-file-card--selected):hover {
+         border-color: var(--theme-elevation-200);
+     }
+     
+     .folder-file-card__titlebar-area {
+         display: flex;
+         position: absolute;
+         bottom: 0;
+         left: 0;
+         width: 100%;
+         min-height: 32px;
+         height: auto;
+         background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
+         padding: 2.5rem 0.5rem 0.5rem 0.5rem; 
+         z-index: 10;
+         pointer-events: none; 
+         align-items: flex-end;
+         justify-content: flex-start;
+         opacity: 1;
+         visibility: visible;
+         border-radius: 0;
+         border-bottom-left-radius: 4px;
+         border-bottom-right-radius: 4px;
+         
+         * {
+             color: white;
+             text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+             border: none;
+             font-weight: 500;
+         }
+
+        .folder-file-card__titlebar-labels {
+             flex: 1;
+             min-width: 0;
+             max-width: 100%;
+             margin-left: 0;
+             display: block;
+             overflow: hidden;
+             
+             .folder-file-card__name {
+                 display: block;
+                 width: 100%;
+                 margin: 0;
+                 color: white; 
+                 white-space: nowrap;
+                 overflow: hidden;
+                 text-overflow: ellipsis;
+                 line-height: 1.2;
+             }
+         }
+         
+         .folder-file-card__icon-wrap {
+             display: none;
+         }
+     }
+
+     .folder-file-card__preview-area {
+         height: 100%;
+         padding-bottom: 0;
+         border-bottom: 0;
+         z-index: 1;
+         position: absolute; 
+         top: 0;
+         left: 0;
+         width: 100%;
+         border-bottom-left-radius: 4px;
+         border-bottom-right-radius: 4px;
+         
+         .icon--document {
+             height: 100%;
+             width: 100%;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+         }
+     }
+}
