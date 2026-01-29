@@ -1,5 +1,13 @@
 # @sitebytom/payload-media-gallery
 
+## 1.0.8
+
+### Patch Changes
+
+- Standardized icon casing to lowercase `src/icons` to resolve cross-platform build errors.
+- Cleaned up redundant legacy component files from the `src` directory.
+
+
 ## 1.0.7
 
 ### Patch Changes
