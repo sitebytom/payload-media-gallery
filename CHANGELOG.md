@@ -1,5 +1,17 @@
 # @sitebytom/payload-media-gallery
 
+## 1.0.6
+
+### Patch Changes
+
+- 76bb185: ## Features
+
+  - **Header Selection Actions**: Added a "Deselect All" button to the list selection bar. This button renders intelligently next to the "Select All" count when items are selected, filling a gap in the default Payload list view (Grid/Justified) where "Deselect All" is otherwise inaccessible.
+
+  ## Improvements
+
+  - **Package Size**: Excluded `src` directory from the published npm package to reduce install size.
+
 ## 1.0.5
 
 ### Patch Changes
