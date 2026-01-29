@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(import.meta.dirname, '..'),
   },
-  transpilePackages: ['payload-media-gallery'],
+  transpilePackages: ['payload-media-gallery', '@sitebytom/use-zoom-pan'],
 }
 
 export default withPayload(nextConfig)

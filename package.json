@@ -118,5 +118,8 @@
       "mongodb-memory-server"
     ]
   },
-  "registry": "https://registry.npmjs.org/"
+  "registry": "https://registry.npmjs.org/",
+  "dependencies": {
+    "@sitebytom/use-zoom-pan": "^1.0.2"
+  }
 }

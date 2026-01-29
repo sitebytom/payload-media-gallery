@@ -1,7 +1,7 @@
 'use client'
 
+import { useZoomPan } from '@sitebytom/use-zoom-pan'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useZoomPan } from '../../hooks/useZoomPan'
 import { AudioIcon, ChevronLeftIcon, ChevronRightIcon, FileIcon } from '../../icons'
 import {
   getMimeType,
@@ -48,9 +48,9 @@ export const Lightbox = ({
   const isDocument = isDocumentMime(mimeType)
   const mediaUrl = currentDoc?.url
 
-  const { scale, position, isDragging, reset, imageProps, containerProps } = useZoomPan({
+  const { scale, position, isDragging, reset, contentProps, containerProps } = useZoomPan({
     containerRef,
-    isImage,
+    enableZoom: isImage,
     onNext: () => handleNext(),
     onPrev: () => handlePrev(),
   })
@@ -59,6 +59,15 @@ export const Lightbox = ({
   useEffect(() => {
     reset()
   }, [currentIndex, reset])
+
+  // If image is already in cache, hide spinner immediately
+  useEffect(() => {
+    if (!isImage) return
+    const img = containerRef.current?.querySelector(
+      '.media-gallery-lightbox__image',
+    ) as HTMLImageElement
+    if (img?.complete) setIsLoading(false)
+  }, [currentIndex, isImage])
 
   // Focus management and mount animation
   useEffect(() => {
@@ -285,21 +294,20 @@ export const Lightbox = ({
             src={mediaUrl}
             className="media-gallery-lightbox__image"
             alt={currentDoc.alt || currentDoc.filename}
-            ref={(img) => {
-              if (img?.complete) setIsLoading(false)
-            }}
+            {...contentProps}
             onLoad={() => setIsLoading(false)}
             onError={() => setIsLoading(false)}
             draggable={false}
             style={{
-              opacity: isLoading ? 0 : 1,
+              ...contentProps.style,
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
               transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-              cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in',
+              opacity: isLoading ? 0 : 1,
               transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)',
-              touchAction: 'none',
               padding: scale > 1 ? 0 : undefined,
             }}
-            {...imageProps}
           />
         )}
         {isAudio && (
