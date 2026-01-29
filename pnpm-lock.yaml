@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@sitebytom/use-zoom-pan':
+        specifier: ^1.0.2
+        version: 1.0.2(react@19.2.3)
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.3.12
@@ -1179,6 +1183,11 @@ packages:
     resolution: {integrity: sha512-H8AE9Ur/t0+1VXujj90w0HrSOuv0Nq9r1vSZF2t5km20NTfosQsGGUXDaKdQZzwuLts7IyL1fYT4hM95TI9c4g==}
     cpu: [x64]
     os: [win32]
+
+  '@sitebytom/use-zoom-pan@1.0.2':
+    resolution: {integrity: sha512-wFEUdbP8EPmqcL/Hwi8XiO5A2okf5zfD/KV1fERymvvDnOJvL7iHDagzFvzJWMAyDuzAsQwTY50A6KFSuuX6jg==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -4142,6 +4151,10 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.56.0':
     optional: true
+
+  '@sitebytom/use-zoom-pan@1.0.2(react@19.2.3)':
+    dependencies:
+      react: 19.2.3
 
   '@standard-schema/spec@1.1.0': {}
 
