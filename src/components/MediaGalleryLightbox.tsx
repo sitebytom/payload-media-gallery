@@ -160,12 +160,6 @@ export const MediaGalleryLightbox = ({
           <div className="media-gallery-lightbox__counter">
             {currentIndex + 1} / {docs.length}
           </div>
-          <div className="media-gallery-lightbox__info">
-            <span className="media-gallery-lightbox__filename">{currentDoc.filename}</span>
-            {currentDoc.alt && (
-              <span className="media-gallery-lightbox__description">{currentDoc.alt}</span>
-            )}
-          </div>
         </div>
 
         <div className="media-gallery-lightbox__header-right">
@@ -218,7 +212,27 @@ export const MediaGalleryLightbox = ({
         </div>
       </div>
 
-      <div className="media-gallery-lightbox__image-container">
+      <div
+        className="media-gallery-lightbox__image-container"
+        onTouchStart={(e) => {
+          const touch = e.changedTouches[0]
+          // @ts-expect-error
+          containerRef.current._touchStartX = touch.clientX
+        }}
+        onTouchEnd={(e) => {
+          const touch = e.changedTouches[0]
+          // @ts-expect-error
+          const startX = containerRef.current._touchStartX
+          const endX = touch.clientX
+          const diff = startX - endX
+
+          if (Math.abs(diff) > 50) {
+            // Threshold 50px
+            if (diff > 0) handleNext()
+            else handlePrev()
+          }
+        }}
+      >
         {/* Side Navigation Buttons (Inside container for proper centering) */}
         <button
           type="button"
@@ -281,6 +295,13 @@ export const MediaGalleryLightbox = ({
               </a>
             </div>
           </div>
+        )}
+      </div>
+
+      <div className="media-gallery-lightbox__footer-info">
+        <span className="media-gallery-lightbox__filename">{currentDoc.filename}</span>
+        {currentDoc.alt && (
+          <span className="media-gallery-lightbox__description">{currentDoc.alt}</span>
         )}
       </div>
 
