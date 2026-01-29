@@ -1,6 +1,6 @@
 {
   "name": "@sitebytom/payload-media-gallery",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "author": "sitebytom",
   "license": "MIT",
   "type": "module",
@@ -118,5 +118,8 @@
       "mongodb-memory-server"
     ]
   },
-  "registry": "https://registry.npmjs.org/"
+  "registry": "https://registry.npmjs.org/",
+  "dependencies": {
+    "@sitebytom/use-zoom-pan": "^1.0.2"
+  }
 }
