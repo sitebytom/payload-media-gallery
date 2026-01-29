@@ -1,6 +1,6 @@
 {
   "name": "@sitebytom/payload-media-gallery",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "sitebytom",
   "license": "MIT",
   "type": "module",
@@ -41,7 +41,8 @@
       }
     },
     "main": "./dist/index.js",
-    "types": "./dist/index.d.ts"
+    "types": "./dist/index.d.ts",
+    "access": "public"
   },
   "files": [
     "dist",
