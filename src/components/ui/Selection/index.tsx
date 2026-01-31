@@ -3,9 +3,10 @@
 import { Button, useSelection } from '@payloadcms/ui'
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import './index.scss'
 
-export const SelectionToggle: React.FC = () => {
-  const { toggleAll, count } = useSelection()
+export const Selection: React.FC = () => {
+  const { count, toggleAll } = useSelection()
   const [target, setTarget] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -13,8 +14,6 @@ export const SelectionToggle: React.FC = () => {
 
     const updateTarget = () => {
       // 0. Safety Check: If Payload adds a native "Deselect" button, abort.
-      // We look for any button containing "Deselect" that isn't ours (we can distinguish by class or context,
-      // but simple text check on other buttons is a decent heuristic).
       const distinctDeselect = Array.from(document.querySelectorAll('button')).some(
         (btn) =>
           btn.textContent?.toLowerCase().includes('deselect') &&
@@ -22,7 +21,6 @@ export const SelectionToggle: React.FC = () => {
       )
 
       if (distinctDeselect) {
-        // If found, ensuring we cleanup our own if it exists
         if (injectedContainer && injectedContainer.parentNode) {
           injectedContainer.parentNode.removeChild(injectedContainer)
           injectedContainer = null
@@ -31,12 +29,9 @@ export const SelectionToggle: React.FC = () => {
         return
       }
 
-      // 1. Find the persistent Edit/Delete group
-      const persistentGroup = document
-        .querySelector(
-          '.list-selection__actions .edit-many, .list-selection__actions .delete-documents__toggle',
-        )
-        ?.closest('.list-selection__actions') as HTMLElement
+      // 1. Find the persistent actions container
+      // We look for .list-selection__actions directly.
+      const persistentGroup = document.querySelector('.list-selection__actions') as HTMLElement
 
       if (!persistentGroup) {
         if (injectedContainer && injectedContainer.parentNode) {
@@ -93,6 +88,8 @@ export const SelectionToggle: React.FC = () => {
 
   return createPortal(
     <React.Fragment>
+      {/* Separator style handled by payload CSS or our injection logic */}
+      {/* Actually Payload uses a span with em dash */}
       <span>—</span>
       <Button
         buttonStyle="none"

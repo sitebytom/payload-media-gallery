@@ -1,20 +1,10 @@
-'use client'
 import { useCallback, useRef } from 'react'
 import { useGalleryManager } from '../../hooks/useGalleryManager'
-import { Item } from './Item'
+import { MediaCard } from '../../MediaCard'
+import type { GridProps } from './types'
+import './index.scss'
 
-export const Grid = ({
-  slug,
-  onQuickEdit,
-  docs,
-  onLightbox,
-}: {
-  slug: string
-  onQuickEdit: (id: string | number) => void
-  // biome-ignore lint/suspicious/noExplicitAny: generic doc
-  docs: any[]
-  onLightbox: (index: number) => void
-}) => {
+export const Grid = ({ onQuickEdit, items, onLightbox }: GridProps) => {
   const gridRef = useRef<HTMLDivElement>(null)
 
   const calculateNextIndex = useCallback((current: number, key: string, total: number) => {
@@ -39,8 +29,7 @@ export const Grid = ({
   }, [])
 
   const { getItemProps } = useGalleryManager({
-    docs,
-    slug,
+    docs: items,
     calculateNextIndex,
     containerRef: gridRef,
     onQuickEdit,
@@ -50,8 +39,8 @@ export const Grid = ({
   return (
     // biome-ignore lint/a11y/useSemanticElements: using div for grid layout
     <div className="item-card-grid media-gallery-grid" role="grid" ref={gridRef}>
-      {docs.map((doc, i) => (
-        <Item key={doc.id} {...getItemProps(doc, i)} />
+      {items.map((item, i) => (
+        <MediaCard key={item.id} {...getItemProps(item, i)} item={item} />
       ))}
     </div>
   )

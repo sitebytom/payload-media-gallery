@@ -1,0 +1,121 @@
+// Footer Styles
+.media-gallery-lightbox {
+  
+  &__document-details {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    
+    h3 {
+      text-align: center;
+      margin: 0;
+      word-break: break-all;
+    }
+  }
+
+  &__download-link {
+    display: inline-block;
+    width: auto;
+    min-width: 200px;
+    text-align: center;
+    padding: 0.75rem 1.5rem;
+    background: var(--theme-text);
+    color: var(--theme-bg);
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    
+    &:hover { opacity: 0.8; }
+  }
+
+  &__footer-info {
+    width: 100%;
+    padding: 1rem;
+    text-align: center;
+    background: transparent;
+    color: var(--theme-text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    z-index: 100002;
+    flex-shrink: 0;
+  }
+
+  &__thumbnails {
+    width: 100%;
+    height: 64px;
+    background: color-mix(in srgb, var(--theme-bg), transparent 50%);
+    border-top: 1px solid var(--theme-elevation-150);
+    z-index: 100002;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    
+    display: flex;
+    overflow-x: auto;
+    &::-webkit-scrollbar { display: none; }
+    
+    &.hidden { display: none; }
+    
+    &-track {
+      display: flex;
+      gap: 0.5rem;
+      height: 100%;
+      padding: 10px 2rem;
+      align-items: center;
+      
+      margin: 0 auto;
+      min-width: min-content; 
+
+      &::-webkit-scrollbar { display: none; }
+    }
+  }
+
+  &__thumbnail-btn {
+    // Rely on %lightbox-btn placeholder or shared mixin if possible?
+    // Placeholders don't work well across @use modules unless config properly.
+    // For now I'll duplicate the btn style or assumes it's available via global.
+    // Wait, Sass modules need explicit imports for extends.
+    // I should create a shared/mixins.scss?
+    // Or just inline the styles to avoid complexity.
+    
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--theme-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+
+    &:hover { background-color: var(--theme-elevation-100); }
+    &:active { background-color: var(--theme-elevation-150); }
+    
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border: 1px solid var(--theme-elevation-200);
+    background: var(--theme-elevation-50);
+    opacity: 0.6;
+    padding: 0;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    &:hover { opacity: 0.9; border-color: var(--theme-elevation-400); }
+    &--active { opacity: 1; border-color: var(--theme-text) !important; }
+    
+    img, video { width: 100%; height: 100%; object-fit: cover; }
+    
+    .media-gallery-lightbox__thumbnail-fallback,
+    .media-gallery-lightbox__thumbnail-overlay {
+       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+       background: rgba(255,255,255,0.3);
+       svg { width: 20px; height: 20px; color: var(--theme-elevation-800); }
+    }
+  }
+}

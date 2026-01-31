@@ -2,31 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGalleryManager } from '../../hooks/useGalleryManager'
-import { Item } from './Item'
+import { MediaCard } from '../../MediaCard'
+import type { InternalItem, JustifiedProps, RowData } from './types'
+import './index.scss'
 
-interface RowData {
-  items: {
-    // biome-ignore lint/suspicious/noExplicitAny: generic doc
-    doc: any
-    index: number
-    width: number
-    height: number
-  }[]
-  height: number
-}
-
-export const Justified = ({
-  slug,
-  docs,
-  onQuickEdit,
-  onLightbox,
-}: {
-  slug: string
-  onQuickEdit: (id: string | number) => void
-  // biome-ignore lint/suspicious/noExplicitAny: generic doc
-  docs: any[]
-  onLightbox: (index: number) => void
-}) => {
+export const Justified = ({ items, onQuickEdit, onLightbox }: JustifiedProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
   const [rows, setRows] = useState<RowData[]>([])
@@ -45,22 +25,21 @@ export const Justified = ({
 
   // Justified Layout Calculation
   useEffect(() => {
-    if (!docs || containerWidth === 0) return
+    if (!items || containerWidth === 0) return
 
     const GAP = 4 // Gap between items in pixels
     const targetRowHeight = 300
     const calculatedRows: RowData[] = []
-    let currentRow: typeof docs = []
+    let currentRow: InternalItem[] = []
     let currentAspectRatioSum = 0
 
-    // biome-ignore lint/suspicious/noExplicitAny: generic doc
-    docs.forEach((doc: any, index: number) => {
-      let w = doc.width
-      let h = doc.height
+    items.forEach((item, index) => {
+      let w = item.width
+      let h = item.height
 
       // Fallback and Sanity Check
       if (!w || !h || w === 0 || h === 0) {
-        if (doc.mimeType?.includes('video')) {
+        if (item.mimeType?.includes('video')) {
           w = 1280
           h = 720
         } else {
@@ -73,7 +52,7 @@ export const Justified = ({
       const rawRatio = w / h
       const ratio = Math.max(0.2, Math.min(5.0, rawRatio))
 
-      currentRow.push({ doc, index, ratio })
+      currentRow.push({ ...item, index, ratio })
       currentAspectRatioSum += ratio
 
       // Check if this row is "full" enough
@@ -88,11 +67,10 @@ export const Justified = ({
 
         calculatedRows.push({
           height: finalHeight,
-          // biome-ignore lint/suspicious/noExplicitAny: dynamic
-          items: currentRow.map((item: { doc: any; index: number; ratio: number }) => ({
-            doc: item.doc,
-            index: item.index,
-            width: item.ratio * finalHeight,
+          items: currentRow.map((itm) => ({
+            item: itm,
+            index: itm.index,
+            width: itm.ratio * finalHeight,
             height: finalHeight,
           })),
         })
@@ -107,18 +85,17 @@ export const Justified = ({
       // Use target height, don't justify/stretch
       calculatedRows.push({
         height: targetRowHeight,
-        // biome-ignore lint/suspicious/noExplicitAny: dynamic
-        items: currentRow.map((item: { doc: any; index: number; ratio: number }) => ({
-          doc: item.doc,
-          index: item.index,
-          width: item.ratio * targetRowHeight,
+        items: currentRow.map((itm) => ({
+          item: itm,
+          index: itm.index,
+          width: itm.ratio * targetRowHeight,
           height: targetRowHeight,
         })),
       })
     }
 
     setRows(calculatedRows)
-  }, [docs, containerWidth])
+  }, [items, containerWidth])
 
   // Navigation Logic
   const calculateNextIndex = useCallback(
@@ -198,8 +175,7 @@ export const Justified = ({
   )
 
   const { getItemProps } = useGalleryManager({
-    docs: docs || [],
-    slug,
+    docs: items || [],
     calculateNextIndex,
     containerRef,
     onQuickEdit,
@@ -225,15 +201,20 @@ export const Justified = ({
             flexWrap: 'nowrap',
           }}
         >
-          {row.items.map(({ doc, index, width, height }) => (
+          {row.items.map(({ item, index, width, height }) => (
             <div
-              key={doc.id}
+              key={item.id}
               style={{
                 width: width,
                 height: height,
               }}
             >
-              <Item key={doc.id} {...getItemProps(doc, index)} variant="overlay" />
+              <MediaCard
+                key={item.id}
+                {...getItemProps(item, index)}
+                item={item}
+                variant="overlay"
+              />
             </div>
           ))}
         </div>

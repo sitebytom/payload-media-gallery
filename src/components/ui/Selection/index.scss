@@ -1,0 +1,13 @@
+// Selection Toggle Styles
+.media-gallery-selection-toggle {
+  order: 9;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .media-gallery-injected-actions {
+    display: none !important;
+  }
+}

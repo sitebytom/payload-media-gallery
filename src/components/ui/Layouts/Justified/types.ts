@@ -1,0 +1,22 @@
+import type { MediaItem } from '../../types'
+
+export interface JustifiedProps {
+  onQuickEdit: (id: string | number) => void
+  items: MediaItem[]
+  onLightbox: (index: number) => void
+}
+
+export interface InternalItem extends MediaItem {
+  index: number
+  ratio: number
+}
+
+export interface RowData {
+  items: {
+    item: MediaItem
+    index: number
+    width: number
+    height: number
+  }[]
+  height: number
+}

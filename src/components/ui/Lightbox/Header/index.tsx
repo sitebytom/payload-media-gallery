@@ -1,48 +1,47 @@
 'use client'
 
 import type React from 'react'
-import { CloseIcon, EditIcon, FullscreenIcon, GridViewIcon, PauseIcon, PlayIcon } from '../../icons'
-
-interface LightboxHeaderProps {
-  currentIndex: number
-  totalDocs: number
-  isPlaying: boolean
-  setIsPlaying: (playing: boolean) => void
-  showThumbnails: boolean
-  setShowThumbnails: (show: boolean) => void
-  toggleFullscreen: () => void
-  onClose: () => void
-  onQuickEdit: () => void
-}
+import {
+  CloseIcon,
+  EditIcon,
+  FullscreenIcon,
+  GridViewIcon,
+  PauseIcon,
+  PlayIcon,
+} from '../../../../icons'
+import type { LightboxHeaderProps } from './types'
+import './index.scss'
 
 export const LightboxHeader: React.FC<LightboxHeaderProps> = ({
   currentIndex,
-  totalDocs,
+  totalItems,
   isPlaying,
   setIsPlaying,
   showThumbnails,
   setShowThumbnails,
   toggleFullscreen,
   onClose,
-  onQuickEdit,
+  onEdit,
 }) => {
   return (
     <div className="media-gallery-lightbox__header">
       <div className="media-gallery-lightbox__header-left">
         <div className="media-gallery-lightbox__counter">
-          {currentIndex + 1} / {totalDocs}
+          {currentIndex + 1} / {totalItems}
         </div>
       </div>
 
       <div className="media-gallery-lightbox__header-right">
-        <button
-          type="button"
-          className="media-gallery-lightbox__btn"
-          onClick={onQuickEdit}
-          aria-label="Quick edit"
-        >
-          <EditIcon />
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            className="media-gallery-lightbox__btn"
+            onClick={onEdit}
+            aria-label="Quick edit"
+          >
+            <EditIcon />
+          </button>
+        )}
 
         <button
           type="button"

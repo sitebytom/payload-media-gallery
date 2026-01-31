@@ -1,0 +1,16 @@
+// Justified Styles
+.media-gallery-justified {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+
+  .media-gallery-grid__item-wrapper,
+  .media-gallery-grid__item,
+  .media-gallery-item__card-wrapper {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: block;
+  }
+}

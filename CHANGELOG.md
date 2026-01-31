@@ -1,5 +1,21 @@
 # @sitebytom/payload-media-gallery
 
+## 1.1.0
+
+### Minor Changes
+
+- dba48df: Refactor UI components to be generic and decoupled from Payload logic, making it easier to register custom layouts.
+
+  ### New Features
+
+  - **Masonry Layout**: Added a responsive Masonry view with intrinsic aspect ratio support (`src/components/ui/Layouts/Masonry`).
+
+  ### Improvements
+
+  - **Modularity**: Moved `GalleryItem` to `MediaItem` and standardized component props (`src/components/ui/types.ts`).
+  - **Layout Registry**: Simplified layout registration via `layoutRegistry` (`src/components/ui/Layouts/registry.tsx`).
+  - **Styles**: Unscoped component styles to support reuse across different layouts.
+
 ## 1.0.9
 
 ### Patch Changes

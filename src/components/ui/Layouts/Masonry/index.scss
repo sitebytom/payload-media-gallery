@@ -1,0 +1,77 @@
+.media-gallery-masonry {
+  display: flex;
+  width: 100%;
+  gap: 4px; // Gap between columns
+
+  &__column {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; // Gap between items in a column
+    flex: 1;
+    min-width: 0; // Prevent flex blowout
+  }
+
+  // Override MediaCard styles to allow intrinsic height
+  .masonry-item {
+    height: auto;
+
+    // Reset Link height
+    .media-gallery-grid__item {
+      height: auto;
+    }
+    
+    // Reset Card Wrapper height
+    .media-gallery-item__card-wrapper {
+      height: auto;
+    }
+
+    .folder-file-card, 
+    .folder-file-card--overlay {
+      height: auto;
+      min-height: 0;
+      
+      // Override Payload's thumbnail class specifically
+      .thumbnail {
+         height: auto;
+         padding-bottom: 0;
+         display: block;
+      }
+
+      .folder-file-card__preview-area {
+        position: relative;
+        height: auto;
+        padding-bottom: 0;
+        aspect-ratio: auto; // Reset any aspect-ratio
+        display: block;
+
+        img, video {
+          position: relative;
+          height: auto;
+          max-height: none; // Ensure no caps
+          width: 100%;
+          max-width: 100%;
+          object-fit: contain; // Use contain to prevent cropping if ratios fight
+          display: block; // Remove inline gap
+        }
+        
+        .icon--document {
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           padding: 2rem; // Give documents some height
+        }
+      }
+    }
+
+    // Ensure wrapper doesn't force height
+    &.media-gallery-grid__item-wrapper {
+      height: auto;
+      display: block;
+    }
+    
+    .media-gallery-item__card-wrapper {
+      height: auto;
+      display: block;
+    }
+  }
+}

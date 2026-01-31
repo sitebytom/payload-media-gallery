@@ -1,0 +1,7 @@
+import type { MediaItem } from '../../types'
+
+export interface MasonryProps {
+  onQuickEdit: (id: string | number) => void
+  items: MediaItem[]
+  onLightbox: (index: number) => void
+}

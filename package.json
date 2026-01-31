@@ -1,6 +1,6 @@
 {
   "name": "@sitebytom/payload-media-gallery",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "author": "sitebytom",
   "license": "MIT",
   "type": "module",
@@ -21,9 +21,9 @@
       "default": "./src/index.ts"
     },
     "./client": {
-      "types": "./src/components/ListView/index.tsx",
-      "import": "./src/components/ListView/index.tsx",
-      "default": "./src/components/ListView/index.tsx"
+      "types": "./src/components/MediaGallery/index.tsx",
+      "import": "./src/components/MediaGallery/index.tsx",
+      "default": "./src/components/MediaGallery/index.tsx"
     }
   },
   "types": "./src/index.ts",
@@ -35,9 +35,9 @@
         "default": "./dist/index.js"
       },
       "./client": {
-        "types": "./dist/components/ListView/index.d.ts",
-        "import": "./dist/components/ListView/index.js",
-        "default": "./dist/components/ListView/index.js"
+        "types": "./dist/components/MediaGallery/index.d.ts",
+        "import": "./dist/components/MediaGallery/index.js",
+        "default": "./dist/components/MediaGallery/index.js"
       }
     },
     "main": "./dist/index.js",
@@ -120,6 +120,6 @@
   },
   "registry": "https://registry.npmjs.org/",
   "dependencies": {
-    "@sitebytom/use-zoom-pan": "^1.0.2"
+    "@sitebytom/use-zoom-pan": "^1.0.5"
   }
 }

@@ -2,23 +2,15 @@
 
 import type React from 'react'
 import { useEffect, useRef } from 'react'
-import { AudioIcon, FileIcon, PlayIcon } from '../../icons'
-import { getMimeType, isAudioMime, isImageMime, isVideoMime } from '../../utils/media'
-
-interface LightboxFooterProps {
-  // biome-ignore lint/suspicious/noExplicitAny: generic doc
-  currentDoc: any
-  // biome-ignore lint/suspicious/noExplicitAny: generic docs
-  docs: any[]
-  currentIndex: number
-  setCurrentIndex: (index: number) => void
-  setIsLoading: (loading: boolean) => void
-  showThumbnails: boolean
-}
+import { AudioIcon, FileIcon, PlayIcon } from '../../../../icons'
+// import { getMimeType, isAudioMime, isImageMime, isVideoMime } from '../../../utils/media' // Removed
+import type { LightboxItem } from '../types'
+import type { LightboxFooterProps } from './types'
+import './index.scss'
 
 export const LightboxFooter: React.FC<LightboxFooterProps> = ({
-  currentDoc,
-  docs,
+  currentItem,
+  items,
   currentIndex,
   setCurrentIndex,
   setIsLoading,
@@ -27,23 +19,21 @@ export const LightboxFooter: React.FC<LightboxFooterProps> = ({
   return (
     <>
       <div className="media-gallery-lightbox__footer-info">
-        <span className="media-gallery-lightbox__filename">{currentDoc.filename}</span>
-        {currentDoc.alt && (
-          <span className="media-gallery-lightbox__description">{currentDoc.alt}</span>
+        <span className="media-gallery-lightbox__filename">{currentItem.filename}</span>
+        {currentItem.alt && (
+          <span className="media-gallery-lightbox__description">{currentItem.alt}</span>
         )}
       </div>
 
       <div className={`media-gallery-lightbox__thumbnails ${showThumbnails ? '' : 'hidden'}`}>
         <div className="media-gallery-lightbox__thumbnails-track">
-          {/* biome-ignore lint/suspicious/noExplicitAny: generic doc */}
-          {docs.map((doc: any, i: number) => (
+          {items.map((item, i) => (
             <LightboxThumbnail
-              key={doc.id}
-              doc={doc}
+              key={item.id}
+              item={item}
               isActive={i === currentIndex}
               onClick={() => {
-                const mime = getMimeType(doc.filename, doc.mimeType)
-                if (isImageMime(mime)) setIsLoading(true)
+                if (item.type === 'image') setIsLoading(true)
                 else setIsLoading(false)
                 setCurrentIndex(i)
               }}
@@ -56,20 +46,18 @@ export const LightboxFooter: React.FC<LightboxFooterProps> = ({
 }
 
 const LightboxThumbnail = ({
-  doc,
+  item,
   isActive,
   onClick,
 }: {
-  // biome-ignore lint/suspicious/noExplicitAny: generic doc
-  doc: any
+  item: LightboxItem
   isActive: boolean
   onClick: () => void
 }) => {
-  const mimeType = getMimeType(doc.filename, doc.mimeType)
-  const isVideo = isVideoMime(mimeType)
-  const isAudio = isAudioMime(mimeType)
-  const isImage = isImageMime(mimeType)
-  const thumbUrl = doc.sizes?.thumbnail?.url
+  const isVideo = item.type === 'video'
+  const isAudio = item.type === 'audio'
+  const isImage = item.type === 'image'
+  const thumbUrl = item.thumbnail || item.src
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -92,7 +80,7 @@ const LightboxThumbnail = ({
       {isVideo ? (
         <>
           <video
-            src={doc.url}
+            src={item.src}
             poster={thumbUrl}
             muted
             playsInline
@@ -111,7 +99,7 @@ const LightboxThumbnail = ({
         </div>
       ) : isImage ? (
         // biome-ignore lint: thumb
-        <img src={thumbUrl || doc.url} alt={doc.filename} />
+        <img src={thumbUrl} alt={item.filename} />
       ) : (
         <div className="media-gallery-lightbox__thumbnail-fallback">
           <FileIcon />

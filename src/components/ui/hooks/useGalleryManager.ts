@@ -1,14 +1,12 @@
-'use client'
-
 import { useSelection } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import type { MediaItem } from '../types'
 
 type GalleryManagerProps = {
-  // biome-ignore lint/suspicious/noExplicitAny: generic doc
-  docs: any[]
-  slug: string
+  docs: MediaItem[]
+  slug?: string
   // calculateNextIndex allows varying navigation logic (e.g. grid vs masonry)
   calculateNextIndex?: (current: number, key: string, total: number, columns?: number) => number
   onQuickEdit?: (id: string | number) => void
@@ -100,8 +98,7 @@ export const useGalleryManager = ({
   )
 
   const handleItemSelection = useCallback(
-    // biome-ignore lint/suspicious/noExplicitAny: generic doc
-    (event: React.MouseEvent | React.KeyboardEvent, doc: any, index: number) => {
+    (event: React.MouseEvent | React.KeyboardEvent, doc: MediaItem, index: number) => {
       const isShift = event.shiftKey
       const isCmd = event.metaKey || event.ctrlKey || event.type === 'keydown'
 
@@ -164,8 +161,7 @@ export const useGalleryManager = ({
   )
 
   const handleOnMouseDown = useCallback(
-    // biome-ignore lint/suspicious/noExplicitAny: generic doc
-    (event: React.MouseEvent, doc: any, index: number) => {
+    (event: React.MouseEvent, doc: MediaItem, index: number) => {
       setFocusedIndex(index)
       if (event.metaKey || event.ctrlKey || event.shiftKey) {
         handleItemSelection(event, doc, index)
@@ -224,7 +220,14 @@ export const useGalleryManager = ({
         }
         return
       } else if (e.key === 'Enter') {
-        if (current !== null) router.push(`/admin/collections/${slug}/${docs[current].id}`)
+        const doc = docs[current]
+        if (current !== null) {
+          if (doc.href) {
+            router.push(doc.href)
+          } else if (slug) {
+            router.push(`/admin/collections/${slug}/${doc.id}`)
+          }
+        }
         return
       }
 
@@ -244,8 +247,7 @@ export const useGalleryManager = ({
 
   // Helper Props Generators
   const getItemProps = useCallback(
-    // biome-ignore lint/suspicious/noExplicitAny: generic doc
-    (doc: any, index: number) => ({
+    (doc: MediaItem, index: number) => ({
       doc,
       index,
       slug,

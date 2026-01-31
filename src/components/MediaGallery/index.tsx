@@ -2,19 +2,20 @@
 
 import { DefaultListView, useDocumentDrawer, useListQuery, usePreferences } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Grid } from '../Gallery/Grid'
-import { Justified } from '../Gallery/Justified'
-import { Lightbox } from '../Lightbox'
-import { SelectionToggle } from './SelectionToggle'
-import { Toggle } from './Toggle'
-import '../../index.scss'
-
-export type ViewType = 'list' | 'grid' | 'justified'
+import { ListViewIcon } from '../../icons'
+import { getMimeType, isAudioMime, isImageMime, isVideoMime } from '../../utils/media'
+import type { ViewType } from '../ui/Layouts/registry'
+import { layoutRegistry } from '../ui/Layouts/registry'
+import { Lightbox } from '../ui/Lightbox'
+import type { LightboxItem } from '../ui/Lightbox/types'
+import { Selection } from '../ui/Selection'
+import { Toggle } from '../ui/Toggle'
+import type { MediaItem } from '../ui/types'
 
 // biome-ignore lint/suspicious/noExplicitAny: generic component props
-export const ListView: React.FC<any> = (props) => {
+export const MediaGallery: React.FC<any> = (props) => {
   const router = useRouter()
   // biome-ignore lint/suspicious/noExplicitAny: props are dynamic
   const { collectionConfig } = props as any
@@ -23,6 +24,37 @@ export const ListView: React.FC<any> = (props) => {
 
   const { getPreference, setPreference } = usePreferences()
   const { data: listData } = useListQuery()
+
+  const galleryItems: MediaItem[] = useMemo(() => {
+    if (!listData?.docs) return []
+    // biome-ignore lint/suspicious/noExplicitAny: generic doc
+    return listData.docs.map((doc: any) => {
+      const mimeType = getMimeType(doc.filename, doc.mimeType)
+      let type: LightboxItem['type'] = 'document'
+
+      if (isImageMime(mimeType)) type = 'image'
+      else if (isVideoMime(mimeType)) type = 'video'
+      else if (isAudioMime(mimeType)) type = 'audio'
+
+      return {
+        id: doc.id,
+        title: doc.filename,
+        src: doc.url,
+        thumbnail: doc.sizes?.thumbnail?.url,
+        alt: doc.alt || doc.filename,
+        filename: doc.filename,
+        type,
+        mimeType,
+        width: doc.width,
+        height: doc.height,
+        focalX: doc.focalX,
+        focalY: doc.focalY,
+        href: `/admin/collections/${slug}/${doc.id}`,
+        sizes: doc.sizes,
+        originalData: doc,
+      }
+    })
+  }, [listData?.docs, slug])
 
   const [viewType, setViewType] = useState<ViewType>('justified')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -63,7 +95,8 @@ export const ListView: React.FC<any> = (props) => {
   useLayoutEffect(() => {
     const fetchPreference = async () => {
       const savedView = await getPreference<ViewType>(PREFERENCE_KEY)
-      if (savedView && ['list', 'grid', 'justified'].includes(savedView)) {
+      // Check if saved view exists in registry or is 'list'
+      if (savedView && (layoutRegistry[savedView] || savedView === 'list')) {
         setViewType(savedView)
       } else {
         setViewType('justified') // Default
@@ -80,25 +113,43 @@ export const ListView: React.FC<any> = (props) => {
   }
 
   if (!isInitialized) return null
-  const viewOptions: ViewType[] = ['justified', 'grid', 'list']
+
+  // Combine internal 'list' view with registry keys
+  const availableViews = [...Object.keys(layoutRegistry), 'list'] as ViewType[]
+
+  // ... existing imports
 
   const listProps = {
     ...props,
     beforeActions: [
       ...(props.beforeActions || []),
-      <SelectionToggle key="selection-toggle" />,
-      ...viewOptions.map((viewOption) => (
-        <Toggle
-          key={`view-toggle-${viewOption}`}
-          view={viewOption}
-          activeView={viewType}
-          onToggle={toggleView}
-        />
-      )),
+      <Selection key="selection-info" />,
+      ...availableViews.map((viewOption) => {
+        const isList = viewOption === 'list'
+        const config = isList
+          ? { icon: <ListViewIcon />, label: 'List' }
+          : layoutRegistry[viewOption]
+
+        if (!config) return null
+
+        return (
+          <Toggle
+            key={`view-toggle-${viewOption}`}
+            view={viewOption}
+            activeView={viewType}
+            onToggle={toggleView}
+            icon={config.icon}
+            tooltip={config.label}
+          />
+        )
+      }),
     ],
   }
 
   const hideTable = () => null
+
+  // Resolve component from registry if not 'list'
+  const ActiveLayout = viewType !== 'list' ? layoutRegistry[viewType]?.component : null
 
   return (
     <React.Fragment>
@@ -108,22 +159,9 @@ export const ListView: React.FC<any> = (props) => {
         BeforeListTable={
           <React.Fragment>
             {props.BeforeListTable}
-            {viewType === 'grid' && (
-              <Grid
-                slug={slug}
-                docs={listData?.docs || []}
-                onQuickEdit={handleQuickEdit}
-                onLightbox={(index) => {
-                  setLightboxIndex(index)
-                  setLightboxOpen(true)
-                }}
-              />
-            )}
-
-            {viewType === 'justified' && (
-              <Justified
-                slug={slug}
-                docs={listData?.docs || []}
+            {ActiveLayout && (
+              <ActiveLayout
+                items={galleryItems}
                 onQuickEdit={handleQuickEdit}
                 onLightbox={(index) => {
                   setLightboxIndex(index)
@@ -136,13 +174,13 @@ export const ListView: React.FC<any> = (props) => {
         Table={viewType !== 'list' ? hideTable : props.Table}
       />
       {lightboxOpen &&
-        listData?.docs &&
+        galleryItems.length > 0 &&
         createPortal(
           <Lightbox
-            docs={listData.docs}
+            items={galleryItems}
             initialIndex={lightboxIndex ?? 0}
             onClose={() => setLightboxOpen(false)}
-            onQuickEdit={handleQuickEdit}
+            onEdit={(item) => handleQuickEdit(item.id)}
           />,
           document.body,
         )}

@@ -2,57 +2,37 @@
 
 import { useZoomPan } from '@sitebytom/use-zoom-pan'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AudioIcon, ChevronLeftIcon, ChevronRightIcon, FileIcon } from '../../icons'
-import {
-  getMimeType,
-  isAudioMime,
-  isDocumentMime,
-  isImageMime,
-  isVideoMime,
-} from '../../utils/media'
+import { AudioIcon, ChevronLeftIcon, ChevronRightIcon, FileIcon } from '../../../icons'
 import { LightboxFooter } from './Footer'
 import { LightboxHeader } from './Header'
+import type { LightboxProps } from './types'
+import './index.scss'
 
-// Media types are handled by src/utils/media.ts
-
-export const Lightbox = ({
-  docs,
-  initialIndex,
-  onClose,
-  onQuickEdit,
-}: {
-  // biome-ignore lint/suspicious/noExplicitAny: doc type is dynamic
-  docs: any[]
-  initialIndex: number
-  onClose: () => void
-  onQuickEdit: (id: string | number) => void
-}) => {
+export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
   const [isPlaying, setIsPlaying] = useState(false)
   const [showThumbnails, setShowThumbnails] = useState(true)
   const [isClosing, setIsClosing] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(() => {
-    const initialDoc = docs[initialIndex]
-    const initialMime = initialDoc ? getMimeType(initialDoc.filename, initialDoc.mimeType) : ''
-    return isImageMime(initialMime)
+    const initialItem = items[initialIndex]
+    return initialItem?.type === 'image'
   })
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Media type detection (moved up to be available for hooks/event listeners)
-  const currentDoc = docs[currentIndex]
-  const mimeType = currentDoc ? getMimeType(currentDoc.filename, currentDoc.mimeType) : ''
-  const isVideo = isVideoMime(mimeType)
-  const isAudio = isAudioMime(mimeType)
-  const isImage = isImageMime(mimeType)
-  const isDocument = isDocumentMime(mimeType)
-  const mediaUrl = currentDoc?.url
+  const currentItem = items[currentIndex]
+  const isVideo = currentItem?.type === 'video'
+  const isAudio = currentItem?.type === 'audio'
+  const isImage = currentItem?.type === 'image'
+  const isDocument = currentItem?.type === 'document'
+  const mediaUrl = currentItem?.src
 
-  const { scale, position, isDragging, reset, contentProps, containerProps } = useZoomPan({
+  const { contentProps, containerProps, reset, isDragging } = useZoomPan({
     containerRef,
     enableZoom: isImage,
     onNext: () => handleNext(),
     onPrev: () => handlePrev(),
+    options: { boundsBuffer: 0 },
   })
 
   // Reset zoom state when index changes
@@ -93,41 +73,38 @@ export const Lightbox = ({
   }, [onClose])
 
   const handleNext = useCallback(() => {
-    const nextIndex = currentIndex < docs.length - 1 ? currentIndex + 1 : 0
-    const nextDoc = docs[nextIndex]
-    const mime = getMimeType(nextDoc.filename, nextDoc.mimeType)
-    if (isImageMime(mime)) setIsLoading(true)
+    const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0
+    const nextItem = items[nextIndex]
+    if (nextItem.type === 'image') setIsLoading(true)
     else setIsLoading(false)
     setCurrentIndex(nextIndex)
-  }, [currentIndex, docs, docs.length])
+  }, [currentIndex, items])
 
   const handlePrev = useCallback(() => {
-    const prevIndex = currentIndex > 0 ? currentIndex - 1 : docs.length - 1
-    const prevDoc = docs[prevIndex]
-    const mime = getMimeType(prevDoc.filename, prevDoc.mimeType)
-    if (isImageMime(mime)) setIsLoading(true)
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1
+    const prevItem = items[prevIndex]
+    if (prevItem.type === 'image') setIsLoading(true)
     else setIsLoading(false)
     setCurrentIndex(prevIndex)
-  }, [currentIndex, docs, docs.length])
+  }, [currentIndex, items])
 
   // Preload next/prev images
   useEffect(() => {
     const preloadImage = (index: number) => {
-      const doc = docs[index]
-      if (!doc) return
-      const mime = getMimeType(doc.filename, doc.mimeType)
-      if (mime.startsWith('image/')) {
+      const item = items[index]
+      if (!item) return
+      if (item.type === 'image') {
         const img = new Image()
-        img.src = doc.url
+        img.src = item.src
       }
     }
 
-    const nextIndex = currentIndex < docs.length - 1 ? currentIndex + 1 : 0
-    const prevIndex = currentIndex > 0 ? currentIndex - 1 : docs.length - 1
+    const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1
 
     preloadImage(nextIndex)
     preloadImage(prevIndex)
-  }, [currentIndex, docs])
+  }, [currentIndex, items])
 
   // Slideshow logic
   useEffect(() => {
@@ -193,7 +170,7 @@ export const Lightbox = ({
         }
       }
     },
-    [handleNext, handlePrev, handleClose, onClose],
+    [handleNext, handlePrev, handleClose],
   )
 
   // Global listener for safety (in case focus is lost)
@@ -219,7 +196,7 @@ export const Lightbox = ({
     }
   }
 
-  if (!currentDoc) return null
+  if (!currentItem) return null
 
   return (
     <div
@@ -240,14 +217,14 @@ export const Lightbox = ({
 
       <LightboxHeader
         currentIndex={currentIndex}
-        totalDocs={docs.length}
+        totalItems={items.length}
         isPlaying={isPlaying}
         setIsPlaying={setIsPlaying}
         showThumbnails={showThumbnails}
         setShowThumbnails={setShowThumbnails}
         toggleFullscreen={toggleFullscreen}
         onClose={handleClose}
-        onQuickEdit={() => onQuickEdit(currentDoc.id)}
+        onEdit={onEdit ? () => onEdit(currentItem) : undefined}
       />
 
       <div className="media-gallery-lightbox__image-container" {...containerProps}>
@@ -256,7 +233,7 @@ export const Lightbox = ({
           type="button"
           className="media-gallery-lightbox__nav-btn media-gallery-lightbox__nav-btn--prev"
           onClick={handlePrev}
-          aria-label="Previous image"
+          aria-label="Previous item"
         >
           <ChevronLeftIcon />
         </button>
@@ -264,7 +241,7 @@ export const Lightbox = ({
           type="button"
           className="media-gallery-lightbox__nav-btn media-gallery-lightbox__nav-btn--next"
           onClick={handleNext}
-          aria-label="Next image"
+          aria-label="Next item"
         >
           <ChevronRightIcon />
         </button>
@@ -275,7 +252,7 @@ export const Lightbox = ({
         )}
         {isVideo && (
           <video
-            key={currentDoc.id}
+            key={currentItem.id}
             src={mediaUrl}
             controls
             autoPlay={isPlaying}
@@ -288,25 +265,21 @@ export const Lightbox = ({
           </video>
         )}
         {isImage && (
-          /* biome-ignore lint: using standard img for external urls */
+          // biome-ignore lint/performance/noImgElement: using standard img for external urls
           <img
-            key={currentDoc.id}
+            key={currentItem.id}
             src={mediaUrl}
             className="media-gallery-lightbox__image"
-            alt={currentDoc.alt || currentDoc.filename}
+            alt={currentItem.alt || currentItem.filename}
             {...contentProps}
             onLoad={() => setIsLoading(false)}
             onError={() => setIsLoading(false)}
             draggable={false}
             style={{
               ...contentProps.style,
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+              // Rely on CSS for dimensions to match example
               opacity: isLoading ? 0 : 1,
               transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)',
-              padding: scale > 1 ? 0 : undefined,
             }}
           />
         )}
@@ -326,7 +299,7 @@ export const Lightbox = ({
               <FileIcon />
             </div>
             <div className="media-gallery-lightbox__document-details">
-              <h3>{currentDoc.filename}</h3>
+              <h3>{currentItem.filename}</h3>
               <a href={mediaUrl} download className="media-gallery-lightbox__download-link">
                 Download File
               </a>
@@ -336,8 +309,8 @@ export const Lightbox = ({
       </div>
 
       <LightboxFooter
-        currentDoc={currentDoc}
-        docs={docs}
+        currentItem={currentItem}
+        items={items}
         currentIndex={currentIndex}
         setCurrentIndex={setCurrentIndex}
         setIsLoading={setIsLoading}

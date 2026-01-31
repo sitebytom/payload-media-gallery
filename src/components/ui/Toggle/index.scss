@@ -1,0 +1,24 @@
+// Toggle Styles
+.media-gallery-toggle {
+  order: 10;
+  padding: 0;
+  background-color: transparent;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  justify-content: center;
+
+  &:hover {
+    background-color: var(--theme-elevation-100);
+  }
+
+  &--active {
+    background-color: var(--theme-elevation-150);
+  }
+
+  .btn__icon {
+    width: 24px;
+    height: 24px;
+    border: 0;
+  }
+}
