@@ -1,5 +1,11 @@
 # @sitebytom/payload-media-gallery
 
+## 1.1.1
+
+### Patch Changes
+
+- Fix critical performance issue by using thumbnail instead of original image in MediaCard
+
 ## 1.1.0
 
 ### Minor Changes

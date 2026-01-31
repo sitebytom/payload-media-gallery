@@ -30,7 +30,9 @@ export const MediaCard = memo(
 
     const title = item.title || item.filename || 'Untitled'
     // Derived props that were passed to Card
-    const previewUrl = useOriginal ? item.src : item.sizes?.card?.url || item.src
+    const previewUrl = useOriginal
+      ? item.src
+      : item.thumbnail || item.sizes?.thumbnail?.url || item.src
     const originalUrl = item.src
     const mimeType = item.mimeType
     const width = useOriginal ? item.width : item.sizes?.thumbnail?.width || item.width
