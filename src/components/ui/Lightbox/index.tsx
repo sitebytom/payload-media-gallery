@@ -1,33 +1,72 @@
 'use client'
 
 import { useZoomPan } from '@sitebytom/use-zoom-pan'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AudioIcon, ChevronLeftIcon, ChevronRightIcon, FileIcon } from '../../../icons'
 import { LightboxFooter } from './Footer'
 import { LightboxHeader } from './Header'
-import type { LightboxProps } from './types'
+import type { LightboxItem, LightboxProps } from './types'
 import './index.scss'
 
 export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps) => {
+  // Helper to construct srcset from available sizes
+  const constructSrcSet = useCallback((item: LightboxItem) => {
+    if (!item || item.type !== 'image' || !item.sizes) return undefined
+
+    const entries = Object.values(item.sizes)
+      .filter((size) => size && size.url && size.width)
+      .map((size) => `${size!.url} ${size!.width}w`)
+
+    // Add original if it has dimensions, otherwise we can't really use it in srcset reliably without width
+    // But usually sizes are enough.
+    if (item.width && item.src) {
+      entries.push(`${item.src} ${item.width}w`)
+    }
+
+    if (entries.length === 0) return undefined
+    return entries.join(', ')
+  }, [])
+
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
+  const currentItem = items[currentIndex]
+
   const [isPlaying, setIsPlaying] = useState(false)
   const [showThumbnails, setShowThumbnails] = useState(true)
   const [isClosing, setIsClosing] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+
+  // Track if we have loaded the high-res version for the CURRENT item
+  const [isHighResLoaded, setIsHighResLoaded] = useState(false)
+
   const [isLoading, setIsLoading] = useState(() => {
     const initialItem = items[initialIndex]
     return initialItem?.type === 'image'
   })
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const currentItem = items[currentIndex]
   const isVideo = currentItem?.type === 'video'
   const isAudio = currentItem?.type === 'audio'
   const isImage = currentItem?.type === 'image'
   const isDocument = currentItem?.type === 'document'
-  const mediaUrl = currentItem?.src
 
-  const { contentProps, containerProps, reset, isDragging } = useZoomPan({
+  const srcSet = useMemo(
+    () => (isImage && !isHighResLoaded ? constructSrcSet(currentItem) : undefined),
+    [isImage, isHighResLoaded, currentItem, constructSrcSet],
+  )
+
+  // Use a fallback for the src attribute (so it's not empty, but let srcset do the work)
+  // Prefer a medium/large image if available to avoid loading full res as fallback immediately
+  const fallbackSrc = useMemo(() => {
+    if (!isImage || !currentItem?.sizes) return currentItem?.src
+    // Try to find a 'large' or 'medium'
+    const size = currentItem.sizes.xlarge || currentItem.sizes.large || currentItem.sizes.medium
+    return size?.url || currentItem.src
+  }, [currentItem, isImage])
+
+  // Use original as src (fallback) or enforced src when high-res is loaded
+  const mediaUrl = isImage && !isHighResLoaded && fallbackSrc ? fallbackSrc : currentItem?.src
+
+  const { contentProps, containerProps, reset, isDragging, scale } = useZoomPan({
     containerRef,
     enableZoom: isImage,
     onNext: () => handleNext(),
@@ -35,10 +74,46 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
     options: { boundsBuffer: 0 },
   })
 
+  // Track if we are currently loading the high-res version to prevent duplicate requests during zoom
+  const isLoadingHighRes = useRef(false)
+
   // Reset zoom state when index changes
   useEffect(() => {
     reset()
+    setIsHighResLoaded(false) // Reset high-res status
+    isLoadingHighRes.current = false
   }, [currentIndex, reset])
+
+  // Progressive Loading: Load high-res in background ONLY when zoomed in
+  useEffect(() => {
+    // Only load if zoomed in beyond 30%
+    if (scale <= 1.3) return
+
+    if (!isImage || !currentItem?.src || isHighResLoaded || isLoadingHighRes.current) return
+
+    isLoadingHighRes.current = true
+
+    // Load original when user zooms in
+    const img = new Image()
+    img.src = currentItem.src
+
+    // Use decode() to ensure image is ready to be painted without stutter
+    img
+      .decode()
+      .then(() => {
+        // Only update if we are still looking at the same item (ref check helpful but component might have unmounted/changed)
+        // We can check if the currentItem.src matches or rely on cleanup/effect dependencies,
+        // but simple check is: are we still "loading" for this item?
+        if (isLoadingHighRes.current) {
+          setIsHighResLoaded(true)
+        }
+      })
+      .catch((err) => {
+        // If decode fails (e.g. not supported or error), fall back to onload or just ignore
+        console.error('Error decoding high-res image', err)
+        isLoadingHighRes.current = false
+      })
+  }, [isImage, currentItem, isHighResLoaded, scale])
 
   // If image is already in cache, hide spinner immediately
   useEffect(() => {
@@ -88,13 +163,16 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
     setCurrentIndex(prevIndex)
   }, [currentIndex, items])
 
-  // Preload next/prev images
+  // Preload next/prev images (Low res preferred)
   useEffect(() => {
     const preloadImage = (index: number) => {
       const item = items[index]
       if (!item) return
       if (item.type === 'image') {
         const img = new Image()
+        // With srcset, preloading is tricky. Let's just preload the src
+        // or we could reimplement constructSrcSet here but parsing it is hard.
+        // Simple preload for now:
         img.src = item.src
       }
     }
@@ -269,6 +347,8 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
           <img
             key={currentItem.id}
             src={mediaUrl}
+            srcSet={srcSet}
+            sizes="100vw"
             className="media-gallery-lightbox__image"
             alt={currentItem.alt || currentItem.filename}
             {...contentProps}

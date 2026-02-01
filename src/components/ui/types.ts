@@ -13,8 +13,8 @@ export interface MediaItem {
   focalY?: number
   href?: string
   sizes?: {
-    card?: { url?: string; width?: number; height?: number }
     thumbnail?: { url?: string; width?: number; height?: number }
+    [key: string]: { url?: string; width?: number; height?: number } | undefined
   }
   // biome-ignore lint/suspicious/noExplicitAny: allow arbitrary data
   originalData?: any

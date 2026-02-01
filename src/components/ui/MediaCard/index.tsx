@@ -141,7 +141,7 @@ export const MediaCard = memo(
               <div className="folder-file-card__preview-area">
                 {!isError && (hasThumbnail || isVideo) ? (
                   <div
-                    className={`thumbnail ${!useOriginal ? 'thumbnail--size-medium' : ''} ${isLoading ? 'thumbnail--is-loading' : ''}`}
+                    className={`thumbnail ${!useOriginal && variant !== 'overlay' ? 'thumbnail--size-medium' : ''} ${isLoading ? 'thumbnail--is-loading' : ''}`}
                   >
                     {isLoading && (
                       <ShimmerEffect height="100%" className="folder-file-card__skeleton" />

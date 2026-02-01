@@ -80,7 +80,7 @@ export const Masonry = ({ onQuickEdit, items, onLightbox }: MasonryProps) => {
                 {...getItemProps(item, index)}
                 item={item}
                 variant="overlay"
-                useOriginal // Use original aspect ratio for masonry
+                // useOriginal removed to use thumbnail for performance
                 className="masonry-item"
               />
             )

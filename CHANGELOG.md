@@ -1,5 +1,11 @@
 # @sitebytom/payload-media-gallery
 
+## 1.1.2
+
+### Patch Changes
+
+- Optimize Lightbox with progressive image loading using `srcset` and `sizes` for initial load, switching to high-res original on zoom.
+
 ## 1.1.1
 
 ### Patch Changes

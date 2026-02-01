@@ -57,6 +57,7 @@ export const LightboxHeader: React.FC<LightboxHeaderProps> = ({
           className={`media-gallery-lightbox__btn ${showThumbnails ? 'media-gallery-lightbox__btn--active' : ''}`}
           onClick={() => setShowThumbnails(!showThumbnails)}
           aria-label="Toggle thumbnails"
+          title="Thumbnails"
         >
           <GridViewIcon />
         </button>
