@@ -9,12 +9,24 @@ import type { LightboxItem, LightboxProps } from './types'
 import './index.scss'
 
 export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps) => {
-  // Helper to construct srcset from available sizes
   const constructSrcSet = useCallback((item: LightboxItem) => {
     if (!item || item.type !== 'image' || !item.sizes) return undefined
 
+    // Filter sizes by aspect ratio to avoid showing cropped versions (like cards/thumbnails)
+    // only if original dimensions are available
+    const targetRatio = item.width && item.height ? item.width / item.height : undefined
+    const tolerance = 0.05
+
     const entries = Object.values(item.sizes)
-      .filter((size) => size && size.url && size.width)
+      .filter((size) => {
+        if (!size || !size.url || !size.width) return false
+        // If we have target ratio, filter by it
+        if (targetRatio && size.height) {
+          const ratio = size.width / size.height
+          return Math.abs(ratio - targetRatio) < tolerance
+        }
+        return true
+      })
       .map((size) => `${size!.url} ${size!.width}w`)
 
     // Add original if it has dimensions, otherwise we can't really use it in srcset reliably without width
@@ -58,8 +70,27 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
   // Prefer a medium/large image if available to avoid loading full res as fallback immediately
   const fallbackSrc = useMemo(() => {
     if (!isImage || !currentItem?.sizes) return currentItem?.src
-    // Try to find a 'large' or 'medium'
-    const size = currentItem.sizes.xlarge || currentItem.sizes.large || currentItem.sizes.medium
+
+    const targetRatio =
+      currentItem.width && currentItem.height ? currentItem.width / currentItem.height : undefined
+    const tolerance = 0.05
+
+    // Helper to check if size matches aspect ratio
+    const isGoodSize = (size: { url?: string; width?: number; height?: number } | undefined) => {
+      if (!size?.url || !size.width || !size.height || !targetRatio) return false
+      const ratio = size.width / size.height
+      return Math.abs(ratio - targetRatio) < tolerance
+    }
+
+    // Try to find a 'large' or 'medium' that matches aspect ratio
+    const large = isGoodSize(currentItem.sizes.xlarge)
+      ? currentItem.sizes.xlarge
+      : isGoodSize(currentItem.sizes.large)
+        ? currentItem.sizes.large
+        : undefined
+    const medium = isGoodSize(currentItem.sizes.medium) ? currentItem.sizes.medium : undefined
+
+    const size = large || medium
     return size?.url || currentItem.src
   }, [currentItem, isImage])
 
@@ -335,7 +366,7 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
             controls
             autoPlay={isPlaying}
             className="media-gallery-lightbox__image"
-            style={{ maxHeight: '100%', maxWidth: '100%', opacity: isLoading ? 0 : 1 }}
+            style={{ opacity: isLoading ? 0 : 1 }}
             onLoadedData={() => setIsLoading(false)}
             onError={() => setIsLoading(false)}
           >
@@ -343,25 +374,37 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
           </video>
         )}
         {isImage && (
-          // biome-ignore lint/performance/noImgElement: using standard img for external urls
-          <img
-            key={currentItem.id}
-            src={mediaUrl}
-            srcSet={srcSet}
-            sizes="100vw"
-            className="media-gallery-lightbox__image"
-            alt={currentItem.alt || currentItem.filename}
+          <div
+            className="media-gallery-lightbox__image-wrapper"
             {...contentProps}
-            onLoad={() => setIsLoading(false)}
-            onError={() => setIsLoading(false)}
-            draggable={false}
             style={{
               ...contentProps.style,
-              // Rely on CSS for dimensions to match example
-              opacity: isLoading ? 0 : 1,
-              transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1)',
+              aspectRatio:
+                currentItem.width && currentItem.height
+                  ? `${currentItem.width} / ${currentItem.height}`
+                  : undefined,
+              transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+              cursor: scale > 1 ? 'grab' : 'zoom-in',
             }}
-          />
+          >
+            {/* biome-ignore lint/performance/noImgElement: using standard img for external urls */}
+            <img
+              key={currentItem.id}
+              src={mediaUrl}
+              srcSet={srcSet}
+              sizes="100vw"
+              width={currentItem.width}
+              height={currentItem.height}
+              className="media-gallery-lightbox__image"
+              alt={currentItem.alt || currentItem.filename}
+              onLoad={() => setIsLoading(false)}
+              onError={() => setIsLoading(false)}
+              draggable={false}
+              style={{
+                opacity: isLoading ? 0 : 1,
+              }}
+            />
+          </div>
         )}
         {isAudio && (
           <div className="media-gallery-lightbox__audio-player">

@@ -1,5 +1,11 @@
 # @sitebytom/payload-media-gallery
 
+## 1.1.3
+
+### Patch Changes
+
+- Refine Lightbox zoom persistence across image upgrades, implement aspect-ratio based containment to prevent layout shifts, and reorganize styles into SCSS for better maintainability.
+
 ## 1.1.2
 
 ### Patch Changes
