@@ -351,3 +351,10 @@
     // Hover/Selection behavior is handled by parent grid item-wrapper
     // and the specific .media-card--selected block above.
 }
+
+.media-card--show-footer {
+    .media-card__footer {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+    }
+}

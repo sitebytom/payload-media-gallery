@@ -1,4 +1,6 @@
 import type { ListViewClientProps } from 'payload'
+import type { PluginOptions } from '../../types'
+import type { ViewType } from '../ui/Layouts/registry'
 
 export interface MediaGalleryProps extends Record<string, unknown>, ListViewClientProps {
   collectionConfig?: {
@@ -19,6 +21,22 @@ export interface MediaGalleryProps extends Record<string, unknown>, ListViewClie
   handleSelection?: (id: string | number) => void
   onSelect?: (args: unknown) => void
   onRowClick?: (id: string | number) => void
+  /**
+   * Initial view mode if no user preference is found.
+   */
+  defaultView?: ViewType
+  /**
+   * Layout configuration (enabled/disabled and footer mode).
+   */
+  layouts?: PluginOptions['layouts']
+  /**
+   * Whether to enable the lightbox.
+   */
+  lightbox?: boolean
+  /**
+   * Whether to enable quick edit.
+   */
+  edit?: boolean
 }
 
 export interface PayloadMediaDoc {

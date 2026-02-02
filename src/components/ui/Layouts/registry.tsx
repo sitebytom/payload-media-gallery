@@ -5,18 +5,18 @@ import { Justified } from './Justified'
 import { Masonry } from './Masonry'
 
 export interface ViewComponentProps {
-  onQuickEdit: (id: string | number) => void
+  onQuickEdit?: (id: string | number) => void
   items: MediaItem[]
-  onLightbox: (index: number) => void
+  onLightbox?: (index: number) => void
   handleSelection?: (item: MediaItem) => void
-  variant?: 'default' | 'overlay'
+  footer?: 'always' | 'hover'
   collectionLabel?: string
 }
 
 export interface LayoutConfig {
   label: string
   component: React.ComponentType<ViewComponentProps>
-  variant?: 'default' | 'overlay'
+  footer?: 'always' | 'hover'
   icon: React.ReactNode
 }
 
@@ -24,19 +24,19 @@ export const layoutRegistry: Record<string, LayoutConfig> = {
   justified: {
     label: 'Justified',
     component: Justified,
-    variant: 'overlay',
+    footer: 'hover',
     icon: <JustifiedIcon />,
   },
   masonry: {
     label: 'Masonry',
     component: Masonry,
-    variant: 'overlay',
+    footer: 'hover',
     icon: <MasonryIcon />,
   },
   grid: {
     label: 'Grid',
     component: Grid,
-    variant: 'overlay',
+    footer: 'hover',
     icon: <GridViewIcon />,
   },
 }

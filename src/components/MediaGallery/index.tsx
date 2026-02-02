@@ -105,7 +105,29 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
     return (coll as { labels?: { singular?: string } })?.labels?.singular || coll?.slug || 'Media'
   }, [config.collections, slug])
 
-  const [viewType, setViewType] = useState<ViewType>('justified')
+  const availableViews = useMemo(() => {
+    return Object.entries(layoutRegistry)
+      .filter(([slug]) => {
+        const config = props.layouts?.[slug as ViewType]
+        if (config === false) return false
+        if (typeof config === 'object' && config.enabled === false) return false
+        return true
+      })
+      .map(([slug, config]) => {
+        const layoutConfig = props.layouts?.[slug as ViewType]
+        const resolvedFooter =
+          (typeof layoutConfig === 'object' ? layoutConfig.footer : undefined) || config.footer
+
+        return {
+          slug: slug as ViewType,
+          label: config.label,
+          icon: config.icon,
+          footer: resolvedFooter,
+        }
+      })
+  }, [props.layouts])
+
+  const [viewType, setViewType] = useState<ViewType>(props.defaultView || 'justified')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
@@ -144,17 +166,25 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
   useLayoutEffect(() => {
     const fetchPreference = async () => {
       const savedView = await getPreference<ViewType>(PREFERENCE_KEY)
-      // Check if saved view exists in registry or is 'list'
       if (savedView && (layoutRegistry[savedView] || savedView === 'list')) {
-        setViewType(savedView)
+        if (availableViews.some((v) => v.slug === savedView) || savedView === 'list') {
+          setViewType(savedView)
+        } else {
+          setViewType(availableViews[0]?.slug || 'list')
+        }
       } else {
-        setViewType('justified') // Default
+        const defaultView = props.defaultView || 'justified'
+        if (availableViews.some((v) => v.slug === defaultView) || defaultView === 'list') {
+          setViewType(defaultView)
+        } else {
+          setViewType(availableViews[0]?.slug || 'list')
+        }
       }
       setIsInitialized(true)
     }
 
     fetchPreference()
-  }, [getPreference, PREFERENCE_KEY])
+  }, [getPreference, PREFERENCE_KEY, props.defaultView, availableViews])
 
   const toggleView = (newView: ViewType) => {
     setViewType(newView)
@@ -163,41 +193,34 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
 
   if (!isInitialized) return null
 
-  // Combine internal 'list' view with registry keys
-  const availableViews = [...Object.keys(layoutRegistry), 'list'] as ViewType[]
-
-  // ... existing imports
-
   const listProps = {
     ...props,
     beforeActions: [
       ...(props.beforeActions || []),
       <Selection key="selection-info" />,
-      ...availableViews.map((viewOption) => {
-        const isList = viewOption === 'list'
-        const config = isList
-          ? { icon: <ListViewIcon />, label: 'List' }
-          : layoutRegistry[viewOption]
-
-        if (!config) return null
-
-        return (
-          <Toggle
-            key={`view-toggle-${viewOption}`}
-            view={viewOption}
-            activeView={viewType}
-            onToggle={toggleView}
-            icon={config.icon}
-            tooltip={config.label}
-          />
-        )
-      }),
+      ...availableViews.map((viewOption) => (
+        <Toggle
+          key={`view-toggle-${viewOption.slug}`}
+          view={viewOption.slug}
+          activeView={viewType}
+          onToggle={toggleView}
+          icon={viewOption.icon}
+          tooltip={viewOption.label}
+        />
+      )),
+      // Always include list view toggle if it's the viewType or just as a fallback
+      <Toggle
+        key="view-toggle-list"
+        view="list"
+        activeView={viewType}
+        onToggle={toggleView}
+        icon={<ListViewIcon />}
+        tooltip="List"
+      />,
     ],
   }
 
-  // Resolve component from registry if not 'list'
   const ActiveLayout = viewType !== 'list' ? layoutRegistry[viewType]?.component : null
-
   const TableSlot = (viewType !== 'list' ? null : props.Table) as React.ReactNode
 
   return (
@@ -208,16 +231,20 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
         BeforeListTable={
           <React.Fragment>
             {props.BeforeListTable}
-            {ActiveLayout && (
+            {viewType !== 'list' && ActiveLayout && (
               <ActiveLayout
                 items={galleryItems}
-                onQuickEdit={handleQuickEdit}
-                onLightbox={(index) => {
-                  setLightboxIndex(index)
-                  setLightboxOpen(true)
-                }}
+                onQuickEdit={props.edit !== false ? handleQuickEdit : undefined}
+                onLightbox={
+                  props.lightbox !== false
+                    ? (index) => {
+                        setLightboxIndex(index)
+                        setLightboxOpen(true)
+                      }
+                    : undefined
+                }
                 handleSelection={resolvedSelectionHandler}
-                variant={layoutRegistry[viewType]?.variant}
+                footer={availableViews.find((v) => v.slug === viewType)?.footer}
                 collectionLabel={collectionLabel}
               />
             )}
@@ -225,7 +252,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
         }
         Table={TableSlot}
       />
-      {lightboxOpen &&
+      {props.lightbox !== false &&
+        lightboxOpen &&
         galleryItems.length > 0 &&
         createPortal(
           <Lightbox

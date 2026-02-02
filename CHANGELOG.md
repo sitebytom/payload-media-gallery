@@ -1,5 +1,16 @@
 # @sitebytom/payload-media-gallery
 
+## 1.1.5
+
+### Patch Changes
+
+- **Flexible Configuration**: Added `defaultView`, `layouts`, `lightbox`, and `edit` options for granular control.
+- **Improved Terminology**: Replaced ambiguous `variant` prop with intuitive `footer: 'hover' | 'always'`.
+- **Media Labeling**: Enhanced card labels to prioritize folder names with smart fallbacks; forced footer visibility for Audio and Document types.
+- **Layout Filtering**: Implemented layout filtering and fixed Masonry intrinsic height regressions.
+- **Global Toggles**: Added global `lightbox` and `edit` boolean toggles that intelligently hide their respective UI triggers.
+- fix selection in post editor by changing container from button to div to avoid overriding default agent button stylesheet
+
 ## 1.1.4
 
 ### Patch Changes

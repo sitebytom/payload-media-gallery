@@ -29,9 +29,53 @@ export default buildConfig({
       collections: {
         media: true,
       },
+      defaultView: 'justified', // 'justified' | 'masonry' | 'grid' | 'list'
+      layouts: {
+        justified: {
+          enabled: true,
+          footer: 'hover', // 'hover' | 'always'
+        },
+        masonry: {
+          enabled: true,
+          footer: 'hover', // 'hover' | 'always'
+        },
+        grid: {
+          enabled: true,
+          footer: 'hover', // 'hover' | 'always'
+        },
+      },
+      lightbox: true,
+      edit: true,
       disabled: false,
     }),
   ],
+})
+```
+
+## Options
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `collections` | `string[] \| object` | `['media']` | Collections to enable the gallery for. |
+| `defaultView` | `ViewType` | `'justified'` | The initial view mode if no preference exists. |
+| `layouts` | `object` | `{}` | Configure available layouts and their footer mode. |
+| `lightbox` | `boolean` | `true` | Whether to enable the lightbox gallery. |
+| `edit` | `boolean` | `true` | Whether to enable the quick edit button. |
+| `disabled` | `boolean` | `false` | Whether to disable the plugin. |
+
+### Layout Configuration
+
+The `layouts` prop allows you to enable/disable specific views or change their display settings.
+
+```typescript
+mediaGalleryPlugin({
+  layouts: {
+    justified: true,
+    grid: {
+      footer: 'always', // 'hover' (default) or 'always'
+    },
+    list: false, // Disable list view toggle
+  },
+  lightbox: true,
 })
 ```
 

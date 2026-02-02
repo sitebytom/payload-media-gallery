@@ -165,8 +165,27 @@ const buildConfigWithMemoryDB = async () => {
     email: testEmailAdapter,
     plugins: [
       mediaGalleryPlugin({
+        collections: {
+          media: true,
+        },
+        defaultView: 'justified', // 'justified' | 'masonry' | 'grid' | 'list'
+        layouts: {
+          justified: {
+            enabled: true,
+            footer: 'hover', // 'hover' | 'always'
+          },
+          masonry: {
+            enabled: true,
+            footer: 'hover', // 'hover' | 'always'
+          },
+          grid: {
+            enabled: true,
+            footer: 'hover', // 'hover' | 'always'
+          },
+        },
+        lightbox: true,
+        edit: true,
         disabled: false,
-        collections: { media: true },
       }),
     ],
     onInit: async (payload) => {

@@ -258,11 +258,15 @@ export const useGalleryManager = ({
       selectedCount: count,
       onOnClick: handleOnClick,
       onOnMouseDown: handleOnMouseDown,
-      onQuickEdit: (e: React.MouseEvent, id: string | number) => {
-        e.preventDefault()
-        e.stopPropagation()
-        onQuickEdit?.(id)
-      },
+      ...(onQuickEdit
+        ? {
+            onQuickEdit: (e: React.MouseEvent, id: string | number) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onQuickEdit(id)
+            },
+          }
+        : {}),
       onSelectionChange: (id: string | number) => toggleSelection(id, index),
       onLightbox: onLightbox || (() => {}),
       onFocus: handleFocus,

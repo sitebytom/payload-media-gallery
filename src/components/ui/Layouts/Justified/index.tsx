@@ -11,7 +11,7 @@ export const Justified = ({
   onQuickEdit,
   onLightbox,
   handleSelection,
-  variant,
+  footer,
   collectionLabel,
 }: JustifiedProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -220,8 +220,9 @@ export const Justified = ({
                 key={item.id}
                 {...getItemProps(item, index)}
                 item={item}
-                variant={variant}
+                footer={footer}
                 collectionLabel={collectionLabel}
+                lightboxEnabled={!!onLightbox}
               />
             </div>
           ))}
