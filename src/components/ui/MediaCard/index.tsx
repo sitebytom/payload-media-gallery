@@ -22,10 +22,11 @@ export const MediaCard = memo(
     onFocus,
     handleSelection,
     useOriginal,
-    variant = 'default',
+    footer = 'always',
     className,
     collectionLabel,
-  }: ItemProps) => {
+    lightboxEnabled = true,
+  }: ItemProps & { footer?: 'always' | 'hover'; lightboxEnabled?: boolean }) => {
     const linkRef = useRef<HTMLAnchorElement>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -96,13 +97,13 @@ export const MediaCard = memo(
     const CardContent = (
       <div className="media-gallery-item__card-wrapper">
         <div
-          className={`draggable-with-click media-card media-card--file ${isSelected ? 'media-card--selected' : ''} ${variant === 'overlay' ? 'media-card--overlay' : ''}`}
+          className={`draggable-with-click media-card media-card--file ${isSelected ? 'media-card--selected' : ''} ${footer === 'hover' ? 'media-card--overlay' : ''} ${item.type === 'document' || item.type === 'audio' ? 'media-card--show-footer' : ''}`}
           title={title}
         >
           <div className="media-card__preview">
             {!isError && (hasThumbnail || isVideo) ? (
               <div
-                className={`thumbnail ${!useOriginal && variant !== 'overlay' ? 'thumbnail--size-medium' : ''} ${isLoading ? 'thumbnail--is-loading' : ''}`}
+                className={`thumbnail ${!useOriginal && footer === 'always' ? 'thumbnail--size-medium' : ''} ${isLoading ? 'thumbnail--is-loading' : ''}`}
               >
                 {isLoading && <ShimmerEffect height="100%" className="media-card__skeleton" />}
                 {isVideo ? (
@@ -149,19 +150,18 @@ export const MediaCard = memo(
             )}
           </div>
           <div className="media-card__footer">
-            <div className="media-card__icon">
-              <div className="icon icon--document">
-                <FileIcon />
-              </div>
-            </div>
-            <div className="media-card__meta">
-              <div className="media-card__filename" title={title}>
-                <span>{title}</span>
-              </div>
-              <span className="media-card__label">
-                {item.originalData?.folder?.name || collectionLabel || 'Media'}
-              </span>
-            </div>
+            <span className="media-card__filename" title={title}>
+              {title}
+            </span>
+            <span className="media-card__label">
+              {item.originalData?.folder?.name ||
+                (item.type === 'image' && 'Image') ||
+                (item.type === 'video' && 'Video') ||
+                (item.type === 'audio' && 'Audio') ||
+                (item.type === 'document' && 'Doc') ||
+                collectionLabel ||
+                'Doc'}
+            </span>
           </div>
         </div>
       </div>
@@ -179,8 +179,9 @@ export const MediaCard = memo(
         onMouseLeave={handleMouseLeave}
       >
         {handleSelection ? (
-          <button
-            type="button"
+          // biome-ignore lint/a11y/useSemanticElements: using div for grid layout
+          <div
+            role="button"
             className={`media-gallery-grid__item${focusedIndex === index ? ' media-gallery-grid__item--focused' : ''}`}
             onClick={(e: React.MouseEvent) => {
               e.preventDefault()
@@ -206,7 +207,7 @@ export const MediaCard = memo(
             onBlur={handleMouseLeave}
           >
             {CardContent}
-          </button>
+          </div>
         ) : (
           <Link
             ref={linkRef}
@@ -248,28 +249,34 @@ export const MediaCard = memo(
           />
         </div>
         <div className="media-gallery-grid__controls">
-          <Button
-            buttonStyle="icon-label"
-            className="media-gallery-grid__edit-btn"
-            icon={<EditIcon />}
-            margin={false}
-            onClick={(e) => onQuickEdit(e, item.id)}
-            round
-            tooltip="Quick Edit"
-          />
-          <Button
-            buttonStyle="icon-label"
-            className="media-gallery-grid__expand-btn"
-            icon={<ExpandIcon />}
-            margin={false}
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              onLightbox(index)
-            }}
-            round
-            tooltip="Expand"
-          />
+          {onQuickEdit && (
+            <Button
+              buttonStyle="icon-label"
+              className="media-gallery-grid__edit-btn"
+              icon={<EditIcon />}
+              margin={false}
+              onClick={(e) => {
+                onQuickEdit(e, item.id)
+              }}
+              round
+              tooltip="Quick Edit"
+            />
+          )}
+          {onLightbox && lightboxEnabled && (
+            <Button
+              buttonStyle="icon-label"
+              className="media-gallery-grid__expand-btn"
+              icon={<ExpandIcon />}
+              margin={false}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onLightbox(index)
+              }}
+              round
+              tooltip="Expand"
+            />
+          )}
         </div>
       </div>
     )

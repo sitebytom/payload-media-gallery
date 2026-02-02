@@ -10,7 +10,7 @@ export const Masonry = ({
   items,
   onLightbox,
   handleSelection,
-  variant,
+  footer,
   collectionLabel,
 }: MasonryProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -87,9 +87,9 @@ export const Masonry = ({
                 key={item.id}
                 {...getItemProps(item, index)}
                 item={item}
-                variant={variant}
+                footer={footer}
                 collectionLabel={collectionLabel}
-                // useOriginal removed to use thumbnail for performance
+                lightboxEnabled={!!onLightbox}
                 className="masonry-item"
               />
             )

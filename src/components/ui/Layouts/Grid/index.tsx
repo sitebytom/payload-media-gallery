@@ -9,7 +9,7 @@ export const Grid = ({
   items,
   onLightbox,
   handleSelection,
-  variant,
+  footer,
   collectionLabel,
 }: GridProps) => {
   const gridRef = useRef<HTMLDivElement>(null)
@@ -52,8 +52,9 @@ export const Grid = ({
           key={item.id}
           {...getItemProps(item, i)}
           item={item}
-          variant={variant}
+          footer={footer}
           collectionLabel={collectionLabel}
+          lightboxEnabled={!!onLightbox}
         />
       ))}
     </div>

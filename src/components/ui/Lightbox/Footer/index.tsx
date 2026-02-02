@@ -16,6 +16,38 @@ export const LightboxFooter: React.FC<LightboxFooterProps> = ({
   setIsLoading,
   showThumbnails,
 }) => {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isDragging = useRef(false)
+  const startX = useRef(0)
+  const scrollLeft = useRef(0)
+  const dragStartTime = useRef(0)
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return
+    isDragging.current = true
+    startX.current = e.pageX - scrollRef.current.offsetLeft
+    scrollLeft.current = scrollRef.current.scrollLeft
+    dragStartTime.current = Date.now()
+    scrollRef.current.style.cursor = 'grabbing'
+    scrollRef.current.style.userSelect = 'none'
+  }
+
+  const handleMouseUp = () => {
+    isDragging.current = false
+    if (scrollRef.current) {
+      scrollRef.current.style.cursor = 'grab'
+      scrollRef.current.style.removeProperty('user-select')
+    }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current || !scrollRef.current) return
+    e.preventDefault()
+    const x = e.pageX - scrollRef.current.offsetLeft
+    const walk = (x - startX.current) * 1.5 // Multiplier for faster scroll
+    scrollRef.current.scrollLeft = scrollLeft.current - walk
+  }
+
   return (
     <>
       <div className="media-gallery-lightbox__footer-info">
@@ -25,7 +57,16 @@ export const LightboxFooter: React.FC<LightboxFooterProps> = ({
         )}
       </div>
 
-      <div className={`media-gallery-lightbox__thumbnails ${showThumbnails ? '' : 'hidden'}`}>
+      <section
+        ref={scrollRef}
+        className={`media-gallery-lightbox__thumbnails ${showThumbnails ? '' : 'hidden'}`}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseUp}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        style={{ cursor: 'grab' }}
+        aria-label="Thumbnail navigation"
+      >
         <div className="media-gallery-lightbox__thumbnails-track">
           {items.map((item, i) => (
             <LightboxThumbnail
@@ -33,6 +74,9 @@ export const LightboxFooter: React.FC<LightboxFooterProps> = ({
               item={item}
               isActive={i === currentIndex}
               onClick={() => {
+                // Ignore click if it's a long drag
+                if (Date.now() - dragStartTime.current > 200) return
+
                 if (item.type === 'image') setIsLoading(true)
                 else setIsLoading(false)
                 setCurrentIndex(i)
@@ -40,7 +84,7 @@ export const LightboxFooter: React.FC<LightboxFooterProps> = ({
             />
           ))}
         </div>
-      </div>
+      </section>
     </>
   )
 }
@@ -99,7 +143,7 @@ const LightboxThumbnail = ({
         </div>
       ) : isImage ? (
         // biome-ignore lint: thumb
-        <img src={thumbUrl} alt={item.filename} />
+        <img src={thumbUrl} alt={item.filename} draggable={false} />
       ) : (
         <div className="media-gallery-lightbox__thumbnail-fallback">
           <FileIcon />

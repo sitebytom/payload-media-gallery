@@ -56,18 +56,22 @@
     
     display: flex;
     overflow-x: auto;
+    // Remove scroll-behavior: smooth as it can conflict with scrollIntoView behavior: 'smooth'
     &::-webkit-scrollbar { display: none; }
     
     &.hidden { display: none; }
+
+    // Add subtle edge fades
+    mask-image: linear-gradient(to right, transparent, black 60px, black calc(100% - 60px), transparent);
     
     &-track {
       display: flex;
       gap: 0.5rem;
       height: 100%;
-      padding: 10px 2rem;
+      // Provide plenty of "drag room" even at the edges
+      padding: 10px 60vw; 
       align-items: center;
-      
-      margin: 0 auto;
+      justify-content: flex-start;
       min-width: min-content; 
 
       &::-webkit-scrollbar { display: none; }
@@ -101,13 +105,18 @@
     height: 50px;
     border: 1px solid var(--theme-elevation-200);
     background: var(--theme-elevation-50);
-    opacity: 0.6;
+    opacity: 0.4;
     padding: 0;
     overflow: hidden;
     flex-shrink: 0;
 
-    &:hover { opacity: 0.9; border-color: var(--theme-elevation-400); }
-    &--active { opacity: 1; border-color: var(--theme-text) !important; }
+    &:hover { opacity: 0.9; border-color: var(--theme-elevation-400); transform: translateY(-2px); }
+    &--active { 
+       opacity: 1; 
+       border-color: var(--theme-text) !important; 
+       transform: scale(1.1) translateY(-2px);
+       z-index: 1;
+    }
     
     img, video { width: 100%; height: 100%; object-fit: cover; }
     

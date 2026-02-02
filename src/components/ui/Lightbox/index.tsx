@@ -55,6 +55,7 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
     return initialItem?.type === 'image'
   })
   const containerRef = useRef<HTMLDivElement>(null)
+  const zoomPanRef = useRef<HTMLDivElement>(null)
 
   const isVideo = currentItem?.type === 'video'
   const isAudio = currentItem?.type === 'audio'
@@ -98,7 +99,7 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
   const mediaUrl = isImage && !isHighResLoaded && fallbackSrc ? fallbackSrc : currentItem?.src
 
   const { contentProps, containerProps, reset, isDragging, scale } = useZoomPan({
-    containerRef,
+    containerRef: zoomPanRef,
     enableZoom: isImage,
     onNext: () => handleNext(),
     onPrev: () => handlePrev(),
@@ -149,7 +150,7 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
   // If image is already in cache, hide spinner immediately
   useEffect(() => {
     if (!isImage) return
-    const img = containerRef.current?.querySelector(
+    const img = zoomPanRef.current?.querySelector(
       '.media-gallery-lightbox__image',
     ) as HTMLImageElement
     if (img?.complete) setIsLoading(false)
@@ -336,7 +337,7 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
         onEdit={onEdit ? () => onEdit(currentItem) : undefined}
       />
 
-      <div className="media-gallery-lightbox__image-container" {...containerProps}>
+      <div className="media-gallery-lightbox__image-container" ref={zoomPanRef} {...containerProps}>
         {/* Side Navigation Buttons (Inside container for proper centering) */}
         <button
           type="button"

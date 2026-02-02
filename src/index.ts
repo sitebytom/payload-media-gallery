@@ -7,7 +7,14 @@ import type { PluginOptions } from './types.js'
 export const mediaGalleryPlugin =
   (options: PluginOptions = {}): Plugin =>
   (config) => {
-    const { collections = ['media'], disabled = false } = options
+    const {
+      collections = ['media'],
+      defaultView,
+      layouts,
+      lightbox = true,
+      edit = true,
+      disabled = false,
+    } = options
 
     if (disabled) {
       return config
@@ -31,7 +38,15 @@ export const mediaGalleryPlugin =
                   ...(collection.admin?.components?.views || {}),
                   list: {
                     ...(collection.admin?.components?.views?.list || {}),
-                    Component: '@sitebytom/payload-media-gallery/client#MediaGallery',
+                    Component: {
+                      path: '@sitebytom/payload-media-gallery/client#MediaGallery',
+                      clientProps: {
+                        defaultView,
+                        layouts,
+                        lightbox,
+                        edit,
+                      },
+                    },
                   },
                 },
               },

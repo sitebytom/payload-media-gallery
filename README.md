@@ -29,11 +29,39 @@ export default buildConfig({
       collections: {
         media: true,
       },
+      defaultView: 'justified', // 'justified' | 'masonry' | 'grid' | 'list'
+      layouts: {
+        justified: {
+          enabled: true,
+          footer: 'hover', // 'hover' | 'always'
+        },
+        masonry: {
+          enabled: true,
+          footer: 'hover', // 'hover' | 'always'
+        },
+        grid: {
+          enabled: true,
+          footer: 'hover', // 'hover' | 'always'
+        },
+      },
+      lightbox: true,
+      edit: true,
       disabled: false,
     }),
   ],
 })
 ```
+
+## Options
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `collections` | `string[] \| object` | `['media']` | Collections to enable the gallery for. |
+| `defaultView` | `ViewType` | `'list'` | The initial view mode if no preference exists. |
+| `layouts` | `object` | `{}` | Configure available layouts and their footer mode. |
+| `lightbox` | `boolean` | `true` | Whether to enable the lightbox gallery. |
+| `edit` | `boolean` | `true` | Whether to enable the quick edit button. |
+| `disabled` | `boolean` | `false` | Whether to disable the plugin. |
+
 
 > ### **⚠️ Experimental**
 > An "as-is" personal concept for Payload CMS. Maintenance is not guaranteed.
