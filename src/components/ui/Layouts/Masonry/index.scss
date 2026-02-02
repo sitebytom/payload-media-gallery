@@ -25,8 +25,8 @@
       height: auto;
     }
 
-    .folder-file-card, 
-    .folder-file-card--overlay {
+    .media-card, 
+    .media-card--overlay {
       height: auto;
       min-height: 0;
       
@@ -37,7 +37,7 @@
          display: block;
       }
 
-      .folder-file-card__preview-area {
+      .media-card__preview {
         position: relative;
         height: auto;
         padding-bottom: 0;

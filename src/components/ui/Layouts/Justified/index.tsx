@@ -6,7 +6,14 @@ import { MediaCard } from '../../MediaCard'
 import type { InternalItem, JustifiedProps, RowData } from './types'
 import './index.scss'
 
-export const Justified = ({ items, onQuickEdit, onLightbox }: JustifiedProps) => {
+export const Justified = ({
+  items,
+  onQuickEdit,
+  onLightbox,
+  handleSelection,
+  variant,
+  collectionLabel,
+}: JustifiedProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
   const [rows, setRows] = useState<RowData[]>([])
@@ -180,6 +187,7 @@ export const Justified = ({ items, onQuickEdit, onLightbox }: JustifiedProps) =>
     containerRef,
     onQuickEdit,
     onLightbox,
+    handleSelection,
     columns: 4, // dummy value, calculateNextIndex handles this
   })
 
@@ -195,7 +203,6 @@ export const Justified = ({ items, onQuickEdit, onLightbox }: JustifiedProps) =>
           style={{
             display: 'flex',
             height: row.height,
-            marginBottom: '4px',
             width: '100%',
             gap: '4px', // Use flex gap
             flexWrap: 'nowrap',
@@ -213,7 +220,8 @@ export const Justified = ({ items, onQuickEdit, onLightbox }: JustifiedProps) =>
                 key={item.id}
                 {...getItemProps(item, index)}
                 item={item}
-                variant="overlay"
+                variant={variant}
+                collectionLabel={collectionLabel}
               />
             </div>
           ))}

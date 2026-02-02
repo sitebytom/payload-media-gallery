@@ -1,5 +1,15 @@
 # @sitebytom/payload-media-gallery
 
+## 1.1.4
+
+### Patch Changes
+
+- - Fixed selection when selecting media to add to a post
+  - Unified card design across all 3 layouts for consistency
+  - Changed plugin type from Config to Plugin for better Payload 3 alignment
+  - Implemented dynamic labeling with folder name and collection label fallbacks
+  - Fixed visual glitches in Grid view including loading state and selection tint
+
 ## 1.1.3
 
 ### Patch Changes

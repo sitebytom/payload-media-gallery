@@ -1,3 +1,10 @@
 // Grid Styles
-// uses native payload grid styles so no styles needed here
-// .media-gallery-grid { ... }
+.media-gallery-grid {
+  gap: 4px !important; // Match Masonry gap
+
+  // Enforce square aspect ratio for grid items to prevent collapse
+  // when using the "overlay" variant which relies on 100% height
+  .media-gallery-grid__item-wrapper {
+    aspect-ratio: 1 / 1;
+  }
+}

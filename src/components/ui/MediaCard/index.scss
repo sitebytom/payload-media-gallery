@@ -8,34 +8,32 @@
 
     &:hover,
     &--selection-mode {
-      .media-gallery-grid__edit-btn {
-        opacity: 1;
-        visibility: visible;
-      }
-      .media-gallery-grid__expand-btn {
-        opacity: 1;
-        visibility: visible;
-      }
-
+      .media-gallery-grid__controls,
       .media-gallery-grid__checkbox {
         opacity: 1;
         visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      
+      // Target the metadata overlay deeply nested
+      .media-card__footer {
+        opacity: 1 !important; // Force visibility on container hover
+        transform: translateY(0) !important;
       }
     }
 
     @media (hover: none) and (pointer: coarse), (max-width: 768px) {
-      .media-gallery-grid__edit-btn {
-        opacity: 1;
-        visibility: visible;
-      }
-      .media-gallery-grid__expand-btn {
-        opacity: 1;
-        visibility: visible;
-      }
-
+      .media-gallery-grid__controls,
       .media-gallery-grid__checkbox {
         opacity: 1;
         visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      .media-card__footer {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
       }
     }
   }
@@ -47,7 +45,8 @@
     z-index: 21;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.2s ease;
+    transform: translateY(-4px);
+    transition: opacity 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1), visibility 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
     flex-shrink: 0;
 
     .checkbox-input__input {
@@ -57,6 +56,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      background: var(--theme-elevation-50);
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
       .checkbox-input__icon {
         width: 20px;
@@ -65,43 +67,69 @@
     }
   }
 
+  &__controls {
+      // LexicalEditorTheme__upload__overlay
+      position: absolute;
+      top: 0.6rem;
+      right: 0.6rem;
+      z-index: 22;
+      
+      // Initial state (hidden)
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-6px);
+      pointer-events: none;
+      transition: opacity .15s, transform .15s, visibility .15s;
+      
+      // Internal layout
+      display: flex;
+      align-items: center;
+      gap: calc(var(--base) * .3);
+      flex-wrap: nowrap;
+      padding: calc(var(--base) * .2) calc(var(--base) * .2);
+      
+      // Visuals (Per User Request: Not blurred)
+      background: var(--theme-elevation-50);
+      box-shadow: 0 -2px 16px -2px #0003;
+      border-radius: 4px;
+  }
+
   &__action-btn {
-    position: absolute;
-    top: 0.6rem;
-    z-index: 22;
-    opacity: 0;
-    visibility: hidden;
-    transition: background-color 0.2s ease, opacity 0.2s ease;
-    background-color: var(--theme-elevation-100);
-    border: 1px solid var(--theme-elevation-200);
-    width: 32px;
-    height: 32px;
+    // Lexical Button Reset
+    --color: var(--theme-text);
+    --bg-color: transparent;
+    --hover-color: var(--theme-elevation-600);
+    
+    width: 28px;
+    height: 28px;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 3px;
     cursor: pointer;
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    transition: background-color 0.1s ease;
 
     &:hover {
-      background-color: var(--theme-elevation-200);
+      background-color: var(--theme-elevation-200); // Or use hover-color variable
     }
 
     svg {
-      width: 20px;
-      height: 20px;
-      color: var(--theme-elevation-800);
+      width: 16px; // Standard icon size
+      height: 16px;
+      color: var(--theme-text);
     }
   }
 
   &__edit-btn {
     @extend .media-gallery-grid__action-btn;
-    right: 3.5rem;
   }
 
   &__expand-btn {
      @extend .media-gallery-grid__action-btn;
-     right: 0.6rem;
   }
 
   &__item {
@@ -112,8 +140,9 @@
     &--focused {
       outline: none;
       
-      .folder-file-card {
-        outline: var(--accessibility-outline);
+      .media-card {
+        // Use generic focus color if --accessibility-outline isn't working
+        outline: 2px solid var(--theme-success-500); 
         outline-offset: 2px;
         z-index: 20;
       }
@@ -125,134 +154,200 @@
   }
 }
 
-// Card Styles merged from Card/index.scss
-// Now unscoped to support use in Grid, Justified, and Masonry
-.folder-file-card {
-    border-color: var(--card-border-color) !important;
-    background-color: var(--card-bg-color) !important;
-    height: 100%; // Ensure card fills wrapper
+// Media Card - Shared Visual Logic
+.media-card {
+    // Base Styles
+    border: 1px solid var(--theme-elevation-100); 
+    background-color: var(--theme-elevation-0);
+    border-radius: 4px; 
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden; 
+    height: 100%; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02); 
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
 
-  &:has(.folder-file-card__preview-area .icon--document) {
-      .folder-file-card__preview-area {
-          aspect-ratio: 1 / 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          
-          .icon--document {
-              width: 100%;
-              height: 100%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              
-              svg {
-                  width: 48px;
-                  height: 48px;
-                  color: var(--theme-elevation-500);
-              }
-          }
-      }
-  }
+    &:hover {
+        border-color: var(--theme-elevation-200);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
 
-  &__skeleton {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-  }
+    // --- SHARED PREVIEW LOGIC ---
+    &__preview {
+        height: 100%;
+        padding-bottom: 0;
+        border-bottom: 0;
+        z-index: 1;
+        position: absolute; 
+        top: 0;
+        left: 0;
+        width: 100%;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+        
+        img, video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .icon--document {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    // --- SHARED FOOTER LOGIC ---
+    &__footer {
+        display: flex; 
+        flex-wrap: nowrap; 
+        align-items: center;
+        justify-content: flex-start; 
+        text-align: left;
+        gap: calc(var(--base) * .5);
+
+        position: absolute;
+        bottom: 0;
+        left: 0; 
+        right: 0;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box; 
+        padding: calc(var(--base) * .5) calc(var(--base) * .75);
+        
+        background: color-mix(in oklab, var(--theme-elevation-50) 55%, transparent);
+        backdrop-filter: saturate(1.2) blur(8px);
+        
+        z-index: 10;
+        pointer-events: none; 
+        border-radius: 0 0 4px 4px;
+        border-top: 1px solid transparent; // Placeholder for selection state
+
+        // Default visibility (Shown)
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity .15s, transform .15s;
+
+        [data-theme='dark'] & {
+            background: color-mix(in oklab, var(--theme-elevation-50) 55%, transparent);
+        }
+        
+        .media-card__meta {
+            flex: 0 1 auto;
+            min-width: 0;
+            width: 100%;
+            margin: 0;
+            display: inline-flex;
+            gap: calc(var(--base) * .5);
+            align-items: center;
+            justify-content: flex-start;
+            
+            .media-card__filename {
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                margin: 0;
+                overflow: hidden;
+                color: var(--theme-text);
+                font-size: 1rem;
+                font-weight: 600;
+                text-decoration: underline;
+                text-underline-offset: 2px;
+                max-width: 100%; 
+                min-width: 0;
+                flex: 0 1 auto;
+            }
+
+            .media-card__label {
+                color: var(--theme-elevation-500);
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                font-size: .9em;
+                overflow: hidden;
+                flex-shrink: 0;
+            }
+        }
+        
+        .media-card__icon {
+            display: none;
+        }
+    }
+
+    // --- SELECTED STATE ---
+    &--selected {
+        border-color: var(--theme-success-500) !important;
+        
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: var(--theme-success-100); 
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 2; 
+        }
+
+        .media-card__footer {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            border-top: 1px solid var(--theme-success-500);
+            background: color-mix(in oklab, var(--theme-elevation-50) 65%, transparent);
+            backdrop-filter: saturate(1.2) blur(8px);
+            z-index: 3;
+        }
+        
+        &:hover {
+           border-color: var(--theme-success-600) !important;
+        }
+
+        [data-theme='dark'] & {
+             &::after {
+                 background-color: var(--theme-success-500); 
+                 opacity: 0.25;
+             }
+        }
+    }
+
+    // Handle documents
+    &:has(.media-card__preview .icon--document) {
+        .media-card__preview {
+            background-color: var(--theme-elevation-50);
+            .icon--document svg {
+                width: 48px;
+                height: 48px;
+                color: var(--theme-elevation-500);
+            }
+        }
+    }
+
+    .thumbnail {
+        position: relative;
+        height: 100%;
+        width: 100%;
+    }
+
+    &__skeleton {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        width: 100%;
+        height: 100%;
+    }
 }
 
-.folder-file-card--overlay {
-      height: 100%;
-      width: 100%;
-      min-height: 0 !important;
-      border: 1px solid var(--theme-elevation-100);
-      border-radius: 4px;
-      overflow: hidden;
-      
-      &:not(.folder-file-card--selected):hover {
-          border-color: var(--theme-elevation-200);
-      }
-      
-      .folder-file-card__titlebar-area {
-          display: flex;
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          min-height: 32px;
-          height: auto;
-          background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
-          padding: 2.5rem 0.5rem 0.5rem 0.5rem; 
-          z-index: 10;
-          pointer-events: none; 
-          align-items: flex-end;
-          justify-content: flex-start;
-          opacity: 1;
-          visibility: visible;
-          border-radius: 0;
-          border-bottom-left-radius: 4px;
-          border-bottom-right-radius: 4px;
-          
-          * {
-              color: white;
-              text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-              border: none;
-              font-weight: 500;
-          }
-
-          .folder-file-card__titlebar-labels {
-              flex: 1;
-              min-width: 0;
-              max-width: 100%;
-              margin-left: 0;
-              display: block;
-              overflow: hidden;
-              
-              .folder-file-card__name {
-                  display: block;
-                  width: 100%;
-                  margin: 0;
-                  color: white; 
-                  white-space: nowrap;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                  line-height: 1.2;
-              }
-          }
-          
-          .folder-file-card__icon-wrap {
-              display: none;
-          }
-      }
-
-      .folder-file-card__preview-area {
-          height: 100%;
-          padding-bottom: 0;
-          border-bottom: 0;
-          z-index: 1;
-          position: absolute; 
-          top: 0;
-          left: 0;
-          width: 100%;
-          border-bottom-left-radius: 4px;
-          border-bottom-right-radius: 4px;
-          
-          img, video {
-              width: 100%;
-              height: 100%;
-              object-fit: cover;
-              display: block;
-          }
-
-          .icon--document {
-              height: 100%;
-              width: 100%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-          }
-      }
+// Variant-Specific Overrides
+.media-card--overlay {
+    // Hide footer by default in overlay variant
+    .media-card__footer {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    
+    // Hover/Selection behavior is handled by parent grid item-wrapper
+    // and the specific .media-card--selected block above.
 }

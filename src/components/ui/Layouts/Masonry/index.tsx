@@ -5,7 +5,14 @@ import type { MediaItem } from '../../types'
 import type { MasonryProps } from './types'
 import './index.scss'
 
-export const Masonry = ({ onQuickEdit, items, onLightbox }: MasonryProps) => {
+export const Masonry = ({
+  onQuickEdit,
+  items,
+  onLightbox,
+  handleSelection,
+  variant,
+  collectionLabel,
+}: MasonryProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [columnCount, setColumnCount] = useState(1)
 
@@ -65,6 +72,7 @@ export const Masonry = ({ onQuickEdit, items, onLightbox }: MasonryProps) => {
     containerRef,
     onQuickEdit,
     onLightbox,
+    handleSelection,
     columns: columnCount,
   })
 
@@ -79,7 +87,8 @@ export const Masonry = ({ onQuickEdit, items, onLightbox }: MasonryProps) => {
                 key={item.id}
                 {...getItemProps(item, index)}
                 item={item}
-                variant="overlay"
+                variant={variant}
+                collectionLabel={collectionLabel}
                 // useOriginal removed to use thumbnail for performance
                 className="masonry-item"
               />

@@ -68,6 +68,90 @@ const buildConfigWithMemoryDB = async () => {
         },
         fields: [{ name: 'alt', type: 'text' }],
       },
+      {
+        slug: 'posts',
+        admin: {
+          useAsTitle: 'title',
+          defaultColumns: ['title', 'slug', 'updatedAt'],
+        },
+        versions: {
+          drafts: true,
+        },
+        fields: [
+          {
+            name: 'title',
+            type: 'text',
+            required: true,
+          },
+          {
+            type: 'tabs',
+            tabs: [
+              {
+                label: 'Content',
+                fields: [
+                  {
+                    name: 'layout',
+                    type: 'blocks',
+                    required: true,
+                    blocks: [
+                      {
+                        slug: 'content',
+                        fields: [
+                          {
+                            name: 'content',
+                            type: 'richText',
+                          },
+                        ],
+                      },
+                      {
+                        slug: 'mediaBlock',
+                        labels: {
+                          singular: 'Media Block',
+                          plural: 'Media Blocks',
+                        },
+                        fields: [
+                          {
+                            name: 'media',
+                            type: 'upload',
+                            relationTo: 'media',
+                            required: true,
+                          },
+                          {
+                            name: 'caption',
+                            type: 'richText',
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    name: 'images',
+                    type: 'upload',
+                    relationTo: 'media',
+                    hasMany: true,
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            name: 'slug',
+            type: 'text',
+            required: true,
+            unique: true,
+            admin: {
+              position: 'sidebar',
+            },
+          },
+          {
+            name: 'publishedDate',
+            type: 'date',
+            admin: {
+              position: 'sidebar',
+            },
+          },
+        ],
+      },
     ],
     editor: lexicalEditor(),
     secret: process.env.PAYLOAD_SECRET || 'test-secret_key',

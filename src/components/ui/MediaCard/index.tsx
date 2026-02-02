@@ -20,9 +20,11 @@ export const MediaCard = memo(
     onLightbox,
     onSelectionChange,
     onFocus,
+    handleSelection,
     useOriginal,
     variant = 'default',
     className,
+    collectionLabel,
   }: ItemProps) => {
     const linkRef = useRef<HTMLAnchorElement>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
@@ -91,6 +93,80 @@ export const MediaCard = memo(
 
     const href = item.href || '#'
 
+    const CardContent = (
+      <div className="media-gallery-item__card-wrapper">
+        <div
+          className={`draggable-with-click media-card media-card--file ${isSelected ? 'media-card--selected' : ''} ${variant === 'overlay' ? 'media-card--overlay' : ''}`}
+          title={title}
+        >
+          <div className="media-card__preview">
+            {!isError && (hasThumbnail || isVideo) ? (
+              <div
+                className={`thumbnail ${!useOriginal && variant !== 'overlay' ? 'thumbnail--size-medium' : ''} ${isLoading ? 'thumbnail--is-loading' : ''}`}
+              >
+                {isLoading && <ShimmerEffect height="100%" className="media-card__skeleton" />}
+                {isVideo ? (
+                  <video
+                    ref={videoRef}
+                    src={videoSrc}
+                    poster={posterUrl}
+                    width={width}
+                    height={height}
+                    muted
+                    loop
+                    playsInline
+                    preload={shouldPreload}
+                    onLoadedData={handleLoad}
+                    onError={handleError}
+                    style={
+                      focalX !== undefined && focalY !== undefined
+                        ? { objectPosition: `${focalX}% ${focalY}%` }
+                        : undefined
+                    }
+                  />
+                ) : (
+                  // biome-ignore lint: using standard img for external thumbnails
+                  <img
+                    src={previewUrl || ''}
+                    alt={title}
+                    width={width}
+                    height={height}
+                    loading="lazy"
+                    onLoad={handleLoad}
+                    onError={handleError}
+                    style={
+                      focalX !== undefined && focalY !== undefined
+                        ? { objectPosition: `${focalX}% ${focalY}%` }
+                        : undefined
+                    }
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="icon icon--document">
+                <FileIcon />
+              </div>
+            )}
+          </div>
+          <div className="media-card__footer">
+            <div className="media-card__icon">
+              <div className="icon icon--document">
+                <FileIcon />
+              </div>
+            </div>
+            <div className="media-card__meta">
+              <div className="media-card__filename" title={title}>
+                <span>{title}</span>
+              </div>
+              <span className="media-card__label">
+                {item.originalData?.folder?.name || collectionLabel || 'Media'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+
     return (
       // biome-ignore lint/a11y/useSemanticElements: using div for grid layout
       <div
@@ -102,108 +178,67 @@ export const MediaCard = memo(
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <Link
-          ref={linkRef}
-          href={href}
-          prefetch={false}
-          className={`media-gallery-grid__item${focusedIndex === index ? ' media-gallery-grid__item--focused' : ''}`}
-          onFocus={() => {
-            onFocus(index)
-            handleMouseEnter()
-          }}
-          onBlur={handleMouseLeave}
-          onClick={(e: React.MouseEvent) => {
-            if (e.metaKey || e.ctrlKey || e.shiftKey) {
-              onOnClick(e, index)
-              return
-            }
-
-            if (selectedCount > 0) {
+        {handleSelection ? (
+          <button
+            type="button"
+            className={`media-gallery-grid__item${focusedIndex === index ? ' media-gallery-grid__item--focused' : ''}`}
+            onClick={(e: React.MouseEvent) => {
               e.preventDefault()
               e.stopPropagation()
-              onSelectionChange(item.id)
+              if (e.metaKey || e.ctrlKey || e.shiftKey) {
+                onOnClick(e, index)
+                return
+              }
+              handleSelection(item)
+            }}
+            onMouseDown={(e: React.MouseEvent) => onOnMouseDown(e, item, index)}
+            onKeyDown={(e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleSelection(item)
+              }
+            }}
+            tabIndex={0}
+            onFocus={() => {
+              onFocus(index)
+              handleMouseEnter()
+            }}
+            onBlur={handleMouseLeave}
+          >
+            {CardContent}
+          </button>
+        ) : (
+          <Link
+            ref={linkRef}
+            href={href}
+            prefetch={false}
+            className={`media-gallery-grid__item${focusedIndex === index ? ' media-gallery-grid__item--focused' : ''}`}
+            onFocus={() => {
+              onFocus(index)
+              handleMouseEnter()
+            }}
+            onBlur={handleMouseLeave}
+            onClick={(e: React.MouseEvent) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey) {
+                onOnClick(e, index)
+                return
+              }
+
+              if (selectedCount > 0) {
+                e.preventDefault()
+                e.stopPropagation()
+                onSelectionChange(item.id)
+              }
+              onOnClick(e, index)
+            }}
+            onMouseDown={(e: React.MouseEvent) => onOnMouseDown(e, item, index)}
+            onContextMenu={(e: React.MouseEvent) =>
+              (e.ctrlKey || e.metaKey || e.shiftKey) && e.preventDefault()
             }
-            onOnClick(e, index)
-          }}
-          onMouseDown={(e: React.MouseEvent) => onOnMouseDown(e, item, index)}
-          onContextMenu={(e: React.MouseEvent) =>
-            (e.ctrlKey || e.metaKey || e.shiftKey) && e.preventDefault()
-          }
-        >
-          <div className="media-gallery-item__card-wrapper">
-            {/* Flattened Card Structure */}
-            {/* biome-ignore lint: native payload pattern uses div */}
-            <div
-              role="button"
-              className={`draggable-with-click folder-file-card folder-file-card--file ${isSelected ? 'folder-file-card--selected' : ''} ${variant === 'overlay' ? 'folder-file-card--overlay' : ''}`}
-              title={title}
-            >
-              <div className="folder-file-card__preview-area">
-                {!isError && (hasThumbnail || isVideo) ? (
-                  <div
-                    className={`thumbnail ${!useOriginal && variant !== 'overlay' ? 'thumbnail--size-medium' : ''} ${isLoading ? 'thumbnail--is-loading' : ''}`}
-                  >
-                    {isLoading && (
-                      <ShimmerEffect height="100%" className="folder-file-card__skeleton" />
-                    )}
-                    {isVideo ? (
-                      <video
-                        ref={videoRef}
-                        src={videoSrc}
-                        poster={posterUrl}
-                        width={width}
-                        height={height}
-                        muted
-                        loop
-                        playsInline
-                        preload={shouldPreload}
-                        onLoadedData={handleLoad}
-                        onError={handleError}
-                        style={
-                          focalX !== undefined && focalY !== undefined
-                            ? { objectPosition: `${focalX}% ${focalY}%` }
-                            : undefined
-                        }
-                      />
-                    ) : (
-                      // biome-ignore lint: using standard img for external thumbnails
-                      <img
-                        src={previewUrl || ''}
-                        alt={title}
-                        width={width}
-                        height={height}
-                        loading="lazy"
-                        onLoad={handleLoad}
-                        onError={handleError}
-                        style={
-                          focalX !== undefined && focalY !== undefined
-                            ? { objectPosition: `${focalX}% ${focalY}%` }
-                            : undefined
-                        }
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <div className="icon icon--document">
-                    <FileIcon />
-                  </div>
-                )}
-              </div>
-              <div className="folder-file-card__titlebar-area">
-                <div className="folder-file-card__icon-wrap">
-                  <div className="icon icon--document">
-                    <FileIcon />
-                  </div>
-                </div>
-                <div className="folder-file-card__titlebar-labels">
-                  <p className="folder-file-card__name" title={title}>
-                    <span>{title}</span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Link>
+          >
+            {CardContent}
+          </Link>
+        )}
         <div className="media-gallery-grid__checkbox">
           <CheckboxInput
             checked={isSelected}
@@ -212,28 +247,30 @@ export const MediaCard = memo(
             }}
           />
         </div>
-        <Button
-          buttonStyle="icon-label"
-          className="media-gallery-grid__expand-btn"
-          icon={<ExpandIcon />}
-          margin={false}
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            onLightbox(index)
-          }}
-          round
-          tooltip="Expand"
-        />
-        <Button
-          buttonStyle="icon-label"
-          className="media-gallery-grid__edit-btn"
-          icon={<EditIcon />}
-          margin={false}
-          onClick={(e) => onQuickEdit(e, item.id)}
-          round
-          tooltip="Quick Edit"
-        />
+        <div className="media-gallery-grid__controls">
+          <Button
+            buttonStyle="icon-label"
+            className="media-gallery-grid__edit-btn"
+            icon={<EditIcon />}
+            margin={false}
+            onClick={(e) => onQuickEdit(e, item.id)}
+            round
+            tooltip="Quick Edit"
+          />
+          <Button
+            buttonStyle="icon-label"
+            className="media-gallery-grid__expand-btn"
+            icon={<ExpandIcon />}
+            margin={false}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onLightbox(index)
+            }}
+            round
+            tooltip="Expand"
+          />
+        </div>
       </div>
     )
   },

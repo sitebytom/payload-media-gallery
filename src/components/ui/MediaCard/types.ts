@@ -13,7 +13,9 @@ export interface ItemProps {
   onLightbox: (index: number) => void
   onSelectionChange: (id: string | number) => void
   onFocus: (index: number) => void
+  handleSelection?: (item: MediaItem) => void
   useOriginal?: boolean
   variant?: 'default' | 'overlay'
   className?: string
+  collectionLabel?: string
 }

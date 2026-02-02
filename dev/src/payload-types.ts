@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     media: Media;
+    posts: Post;
     'payload-kv': PayloadKv;
     users: User;
     'payload-folders': FolderInterface;
@@ -82,6 +83,7 @@ export interface Config {
   };
   collectionsSelect: {
     media: MediaSelect<false> | MediaSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
@@ -228,6 +230,63 @@ export interface FolderInterface {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: string;
+  title: string;
+  layout: (
+    | {
+        content?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'content';
+      }
+    | {
+        media: string | Media;
+        caption?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'mediaBlock';
+      }
+  )[];
+  images?: (string | Media)[] | null;
+  slug: string;
+  publishedDate?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -277,6 +336,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'posts';
+        value: string | Post;
       } | null)
     | ({
         relationTo: 'users';
@@ -420,6 +483,38 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  title?: T;
+  layout?:
+    | T
+    | {
+        content?:
+          | T
+          | {
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        mediaBlock?:
+          | T
+          | {
+              media?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  images?: T;
+  slug?: T;
+  publishedDate?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

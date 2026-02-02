@@ -4,7 +4,14 @@ import { MediaCard } from '../../MediaCard'
 import type { GridProps } from './types'
 import './index.scss'
 
-export const Grid = ({ onQuickEdit, items, onLightbox }: GridProps) => {
+export const Grid = ({
+  onQuickEdit,
+  items,
+  onLightbox,
+  handleSelection,
+  variant,
+  collectionLabel,
+}: GridProps) => {
   const gridRef = useRef<HTMLDivElement>(null)
 
   const calculateNextIndex = useCallback((current: number, key: string, total: number) => {
@@ -34,13 +41,20 @@ export const Grid = ({ onQuickEdit, items, onLightbox }: GridProps) => {
     containerRef: gridRef,
     onQuickEdit,
     onLightbox,
+    handleSelection,
   })
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: using div for grid layout
     <div className="item-card-grid media-gallery-grid" role="grid" ref={gridRef}>
       {items.map((item, i) => (
-        <MediaCard key={item.id} {...getItemProps(item, i)} item={item} />
+        <MediaCard
+          key={item.id}
+          {...getItemProps(item, i)}
+          item={item}
+          variant={variant}
+          collectionLabel={collectionLabel}
+        />
       ))}
     </div>
   )

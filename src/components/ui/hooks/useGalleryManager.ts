@@ -11,6 +11,7 @@ type GalleryManagerProps = {
   calculateNextIndex?: (current: number, key: string, total: number, columns?: number) => number
   onQuickEdit?: (id: string | number) => void
   onLightbox?: (index: number) => void
+  handleSelection?: (item: MediaItem) => void
   columns?: number
   containerRef?: React.RefObject<HTMLDivElement | null>
 }
@@ -21,6 +22,7 @@ export const useGalleryManager = ({
   calculateNextIndex,
   onQuickEdit,
   onLightbox,
+  handleSelection,
   columns = 1,
   containerRef: providedRef,
 }: GalleryManagerProps) => {
@@ -264,6 +266,7 @@ export const useGalleryManager = ({
       onSelectionChange: (id: string | number) => toggleSelection(id, index),
       onLightbox: onLightbox || (() => {}),
       onFocus: handleFocus,
+      handleSelection,
     }),
     [
       slug,
@@ -276,6 +279,7 @@ export const useGalleryManager = ({
       onLightbox,
       toggleSelection,
       handleFocus,
+      handleSelection,
     ],
   )
 

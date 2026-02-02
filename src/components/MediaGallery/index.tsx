@@ -1,6 +1,13 @@
 'use client'
 
-import { DefaultListView, useDocumentDrawer, useListQuery, usePreferences } from '@payloadcms/ui'
+import {
+  DefaultListView,
+  useConfig,
+  useDocumentDrawer,
+  useListDrawerContext,
+  useListQuery,
+  usePreferences,
+} from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -13,12 +20,49 @@ import type { LightboxItem } from '../ui/Lightbox/types'
 import { Selection } from '../ui/Selection'
 import { Toggle } from '../ui/Toggle'
 import type { MediaItem } from '../ui/types'
+import type { MediaGalleryProps, PayloadMediaDoc } from './types'
 
-// biome-ignore lint/suspicious/noExplicitAny: generic component props
-export const MediaGallery: React.FC<any> = (props) => {
+export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
   const router = useRouter()
-  // biome-ignore lint/suspicious/noExplicitAny: props are dynamic
-  const { collectionConfig } = props as any
+  const { collectionConfig } = props
+  // Detect selection handler from context or props
+  const { onSelect: contextOnSelect } = useListDrawerContext()
+
+  const resolvedSelectionHandler = useMemo(() => {
+    const listProps = props.listProps || {}
+    const drawerProps = props.drawerProps || {}
+
+    const handler =
+      props.handleSelection ||
+      props.onSelect ||
+      props.onRowClick ||
+      listProps.handleSelection ||
+      listProps.onSelect ||
+      listProps.onRowClick ||
+      drawerProps.handleSelection ||
+      drawerProps.onSelect ||
+      contextOnSelect
+
+    if (!handler) return undefined
+
+    // Wrap the handler to ensure it receives the format Payload expects if it's the context one
+    return (item: MediaItem) => {
+      if (typeof handler === 'function') {
+        // Some handlers expect just ID, others expect the object
+        // Payload's context onSelect expects { collectionSlug, doc, docID }
+        if (handler === contextOnSelect) {
+          ;(handler as (args: { collectionSlug: string; doc: unknown; docID: string }) => void)({
+            collectionSlug: collectionConfig?.slug || 'media', // Use collectionConfig.slug here
+            doc: item.originalData,
+            docID: String(item.id),
+          })
+        } else {
+          ;(handler as (id: string | number) => void)(item.id)
+        }
+      }
+    }
+  }, [props, contextOnSelect, collectionConfig?.slug])
+
   const slug = collectionConfig?.slug || 'media'
   const PREFERENCE_KEY = `payload-${slug}-view`
 
@@ -27,8 +71,7 @@ export const MediaGallery: React.FC<any> = (props) => {
 
   const galleryItems: MediaItem[] = useMemo(() => {
     if (!listData?.docs) return []
-    // biome-ignore lint/suspicious/noExplicitAny: generic doc
-    return listData.docs.map((doc: any) => {
+    return (listData.docs as unknown as PayloadMediaDoc[]).map((doc) => {
       const mimeType = getMimeType(doc.filename, doc.mimeType)
       let type: LightboxItem['type'] = 'document'
 
@@ -55,6 +98,12 @@ export const MediaGallery: React.FC<any> = (props) => {
       }
     })
   }, [listData?.docs, slug])
+
+  const { config } = useConfig()
+  const collectionLabel = useMemo(() => {
+    const coll = config.collections.find((c) => c.slug === slug)
+    return (coll as { labels?: { singular?: string } })?.labels?.singular || coll?.slug || 'Media'
+  }, [config.collections, slug])
 
   const [viewType, setViewType] = useState<ViewType>('justified')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -146,10 +195,10 @@ export const MediaGallery: React.FC<any> = (props) => {
     ],
   }
 
-  const hideTable = () => null
-
   // Resolve component from registry if not 'list'
   const ActiveLayout = viewType !== 'list' ? layoutRegistry[viewType]?.component : null
+
+  const TableSlot = (viewType !== 'list' ? null : props.Table) as React.ReactNode
 
   return (
     <React.Fragment>
@@ -167,11 +216,14 @@ export const MediaGallery: React.FC<any> = (props) => {
                   setLightboxIndex(index)
                   setLightboxOpen(true)
                 }}
+                handleSelection={resolvedSelectionHandler}
+                variant={layoutRegistry[viewType]?.variant}
+                collectionLabel={collectionLabel}
               />
             )}
           </React.Fragment>
         }
-        Table={viewType !== 'list' ? hideTable : props.Table}
+        Table={TableSlot}
       />
       {lightboxOpen &&
         galleryItems.length > 0 &&
