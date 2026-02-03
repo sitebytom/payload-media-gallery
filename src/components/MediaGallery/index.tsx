@@ -186,6 +186,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
     fetchPreference()
   }, [getPreference, PREFERENCE_KEY, props.defaultView, availableViews])
 
+  // Fallback to list view if no docs match (to use Payload's native empty state)
+  useEffect(() => {
+    if (isInitialized && listData?.docs && listData.docs.length === 0 && viewType !== 'list') {
+      setViewType('list')
+    }
+  }, [listData?.docs, isInitialized, viewType])
+
   const toggleView = (newView: ViewType) => {
     setViewType(newView)
     setPreference<string>(PREFERENCE_KEY, newView)

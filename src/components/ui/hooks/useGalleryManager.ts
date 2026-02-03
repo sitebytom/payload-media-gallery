@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import type { MediaItem } from '../types'
+import { useMarquee } from './useMarquee'
 
 type GalleryManagerProps = {
   docs: MediaItem[]
@@ -38,6 +39,9 @@ export const useGalleryManager = ({
   useLayoutEffect(() => {
     focusedIndexRef.current = focusedIndex
   }, [focusedIndex])
+
+  const [marqueeIds, setMarqueeIds] = useState<Set<string | number>>(new Set())
+  const [marqueeAppend, setMarqueeAppend] = useState(false)
 
   // Focus Management
   useLayoutEffect(() => {
@@ -105,35 +109,34 @@ export const useGalleryManager = ({
       const isCmd = event.metaKey || event.ctrlKey || event.type === 'keydown'
 
       if (isCmd || isShift) {
-        event.preventDefault()
-        event.stopPropagation()
+        if (event.preventDefault) event.preventDefault()
+        if (event.stopPropagation) event.stopPropagation()
+
+        // Determine anchor point: last clicked or currently focused
+        const anchorIndex = lastClickedIndex !== null ? lastClickedIndex : focusedIndexRef.current
 
         // If Shift is pressed but we have no starting point, treat it as a Cmd click
-        if (isCmd || (isShift && lastClickedIndex === null)) {
+        if (isCmd || (isShift && anchorIndex === null)) {
           toggleSelection(doc.id, index)
-        } else if (isShift && lastClickedIndex !== null && docs) {
-          const start = Math.min(lastClickedIndex, index)
-          const end = Math.max(lastClickedIndex, index)
+        } else if (isShift && anchorIndex !== null && docs) {
+          const start = Math.min(anchorIndex, index)
+          const end = Math.max(anchorIndex, index)
 
           // Determine the target state based on the clicked item's current state
+          // If the clicked item is NOT selected, we want to SELECT the range.
           const currentlySelected = isIdSelected(doc.id)
           const targetState = !currentlySelected
 
-          // We select/deselect the range to match the target state.
-          // Note: Since we are calling setSelection in a loop, we rely on Payload's
-          // selection manager to handle these safely. If it's a simple toggle,
-          // we only call it for items that don't match the target state.
           for (let i = start; i <= end; i++) {
             const item = docs[i]
             if (isIdSelected(item.id) !== targetState) {
-              // We don't update lastClickedIndex inside the loop
               const idStr = String(item.id)
               const idNum = Number(item.id)
               const hasNumberParams = typeof item.id === 'number' || !Number.isNaN(idNum)
 
-              if (selected.get(idStr) === true) {
+              if (selected.has(idStr)) {
                 setSelection(idStr)
-              } else if (hasNumberParams && selected.get(idNum) === true) {
+              } else if (hasNumberParams && selected.has(idNum)) {
                 setSelection(idNum)
               } else {
                 setSelection(idStr)
@@ -207,9 +210,24 @@ export const useGalleryManager = ({
 
       const calc = calculateNextIndex || defaultCalculator
 
-      if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+      if (['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
         e.preventDefault()
-        nextIndex = calc(current, e.key, total, columns)
+        if (e.key === 'Home') {
+          nextIndex = 0
+        } else if (e.key === 'End') {
+          nextIndex = total - 1
+        } else {
+          nextIndex = calc(current, e.key, total, columns)
+        }
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+        e.preventDefault()
+        // Select All behavior
+        docs.forEach((doc) => {
+          if (!isIdSelected(doc.id)) {
+            setSelection(doc.id)
+          }
+        })
+        return
       } else if (e.key === ' ') {
         e.preventDefault()
         if (current !== null) {
@@ -235,6 +253,9 @@ export const useGalleryManager = ({
 
       if (nextIndex !== current) {
         setFocusedIndex(nextIndex)
+        // Anchor the selection to the newly focused item if we were already in some state
+        // This helps Shift+Click range selection from keyboard
+        setLastClickedIndex(nextIndex)
       }
     },
     [docs, slug, columns, calculateNextIndex, handleItemSelection, router],
@@ -247,6 +268,38 @@ export const useGalleryManager = ({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [docs, handleKeyDown])
 
+  // Marquee Selection Logic
+  const handleMarqueeUpdate = useCallback((ids: (string | number)[], append: boolean) => {
+    setMarqueeIds(new Set(ids))
+    setMarqueeAppend(append)
+  }, [])
+
+  const handleMarqueeEnd = useCallback(
+    (ids: (string | number)[], append: boolean) => {
+      setMarqueeIds(new Set())
+
+      const targetSelected = new Set(ids)
+
+      docs.forEach((doc) => {
+        const isCurrentlySelected = isIdSelected(doc.id)
+        const shouldBeSelected = targetSelected.has(doc.id) || (append && isCurrentlySelected)
+
+        if (isCurrentlySelected !== shouldBeSelected) {
+          setSelection(doc.id)
+        }
+      })
+    },
+    [docs, selected, setSelection],
+  )
+
+  const marquee = useMarquee({
+    containerRef,
+    items: docs,
+    onSelectionChange: handleMarqueeUpdate,
+    onSelectionEnd: handleMarqueeEnd,
+    enabled: true,
+  })
+
   // Helper Props Generators
   const getItemProps = useCallback(
     (doc: MediaItem, index: number) => ({
@@ -254,7 +307,13 @@ export const useGalleryManager = ({
       index,
       slug,
       focusedIndex,
-      isSelected: isIdSelected(doc.id),
+      isSelected: (() => {
+        if (marquee.active) {
+          if (marqueeAppend) return isIdSelected(doc.id) || marqueeIds.has(doc.id)
+          return marqueeIds.has(doc.id)
+        }
+        return isIdSelected(doc.id)
+      })(),
       selectedCount: count,
       onOnClick: handleOnClick,
       onOnMouseDown: handleOnMouseDown,
@@ -290,5 +349,6 @@ export const useGalleryManager = ({
   return {
     handleKeyDown,
     getItemProps,
+    marquee,
   }
 }

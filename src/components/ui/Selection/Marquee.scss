@@ -1,0 +1,9 @@
+.media-gallery-marquee {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: none;
+  border: 1px solid var(--theme-success-500);
+  background-color: color-mix(in srgb, var(--theme-success-500) 15%, transparent);
+  border-radius: 2px;
+  will-change: transform, width, height;
+}

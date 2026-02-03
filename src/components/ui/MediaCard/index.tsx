@@ -98,7 +98,6 @@ export const MediaCard = memo(
       <div className="media-gallery-item__card-wrapper">
         <div
           className={`draggable-with-click media-card media-card--file ${isSelected ? 'media-card--selected' : ''} ${footer === 'hover' ? 'media-card--overlay' : ''} ${item.type === 'document' || item.type === 'audio' ? 'media-card--show-footer' : ''}`}
-          title={title}
         >
           <div className="media-card__preview">
             {!isError && (hasThumbnail || isVideo) ? (
@@ -135,6 +134,7 @@ export const MediaCard = memo(
                     loading="lazy"
                     onLoad={handleLoad}
                     onError={handleError}
+                    draggable={false}
                     style={
                       focalX !== undefined && focalY !== undefined
                         ? { objectPosition: `${focalX}% ${focalY}%` }
@@ -150,25 +150,18 @@ export const MediaCard = memo(
             )}
           </div>
           <div className="media-card__footer">
-            <div className="media-card__icon">
-              <div className="icon icon--document">
-                <FileIcon />
-              </div>
-            </div>
-            <div className="media-card__meta">
-              <div className="media-card__filename" title={title}>
-                <span>{title}</span>
-              </div>
-              <span className="media-card__label">
-                {item.originalData?.folder?.name ||
-                  (item.type === 'image' && 'Image') ||
-                  (item.type === 'video' && 'Video') ||
-                  (item.type === 'audio' && 'Audio') ||
-                  (item.type === 'document' && 'Doc') ||
-                  collectionLabel ||
-                  'Doc'}
-              </span>
-            </div>
+            <span className="media-card__filename" title={title}>
+              {title}
+            </span>
+            <span className="media-card__label">
+              {item.originalData?.folder?.name ||
+                (item.type === 'image' && 'Image') ||
+                (item.type === 'video' && 'Video') ||
+                (item.type === 'audio' && 'Audio') ||
+                (item.type === 'document' && 'Doc') ||
+                collectionLabel ||
+                'Doc'}
+            </span>
           </div>
         </div>
       </div>
@@ -190,6 +183,7 @@ export const MediaCard = memo(
           <div
             role="button"
             className={`media-gallery-grid__item${focusedIndex === index ? ' media-gallery-grid__item--focused' : ''}`}
+            draggable={false}
             onClick={(e: React.MouseEvent) => {
               e.preventDefault()
               e.stopPropagation()
@@ -221,6 +215,7 @@ export const MediaCard = memo(
             href={href}
             prefetch={false}
             className={`media-gallery-grid__item${focusedIndex === index ? ' media-gallery-grid__item--focused' : ''}`}
+            draggable={false}
             onFocus={() => {
               onFocus(index)
               handleMouseEnter()
@@ -255,7 +250,7 @@ export const MediaCard = memo(
             }}
           />
         </div>
-        <div className="media-gallery-grid__controls">
+        <div className="media-gallery-grid__controls" title="">
           {onQuickEdit && (
             <Button
               buttonStyle="icon-label"

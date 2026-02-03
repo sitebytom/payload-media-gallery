@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGalleryManager } from '../../hooks/useGalleryManager'
 import { MediaCard } from '../../MediaCard'
+import { MarqueeBox } from '../../Selection/MarqueeBox'
 import type { InternalItem, JustifiedProps, RowData } from './types'
 import './index.scss'
 
@@ -181,7 +182,7 @@ export const Justified = ({
     [rows],
   )
 
-  const { getItemProps } = useGalleryManager({
+  const { getItemProps, marquee } = useGalleryManager({
     docs: items || [],
     calculateNextIndex,
     containerRef,
@@ -195,8 +196,9 @@ export const Justified = ({
     <div
       className="media-gallery-grid media-gallery-justified"
       ref={containerRef}
-      style={{ width: '100%' }}
+      style={{ width: '100%', position: 'relative' }}
     >
+      <MarqueeBox marquee={marquee} />
       {rows.map((row, rowIndex) => (
         <div
           key={rowIndex}

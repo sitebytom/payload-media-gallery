@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react'
 import { useGalleryManager } from '../../hooks/useGalleryManager'
 import { MediaCard } from '../../MediaCard'
+import { MarqueeBox } from '../../Selection/MarqueeBox'
 import type { GridProps } from './types'
 import './index.scss'
 
@@ -35,7 +36,7 @@ export const Grid = ({
     }
   }, [])
 
-  const { getItemProps } = useGalleryManager({
+  const { getItemProps, marquee } = useGalleryManager({
     docs: items,
     calculateNextIndex,
     containerRef: gridRef,
@@ -47,6 +48,7 @@ export const Grid = ({
   return (
     // biome-ignore lint/a11y/useSemanticElements: using div for grid layout
     <div className="item-card-grid media-gallery-grid" role="grid" ref={gridRef}>
+      <MarqueeBox marquee={marquee} />
       {items.map((item, i) => (
         <MediaCard
           key={item.id}

@@ -1,5 +1,20 @@
 # @sitebytom/payload-media-gallery
 
+## 1.1.6
+
+### Patch Changes
+
+- **Marquee Selection**: Added robust drag-to-select functionality.
+  - Supports `Shift` and `Cmd/Ctrl` modifiers for adding/toggling selections.
+  - Smart boundary detection (works in gutters, template wrapper, etc.).
+  - Auto-scrolls when dragging near edges.
+  - Prevents text selection during drag for a cleaner experience.
+- **Keyboard Shortcuts**: Added `Cmd+A` / `Ctrl+A` to instantly select all visible media items.
+- **UI Polish**:
+  - Refined control bar layout to prevent px-shifting/jumping.
+  - Added selection-tinted hover states to Edit/Expand buttons on selected cards.
+  - Removed redundant browser tooltips in favor of Payload's native UI tooltips.
+
 ## 1.1.5
 
 ### Patch Changes

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useGalleryManager } from '../../hooks/useGalleryManager'
 import { MediaCard } from '../../MediaCard'
+import { MarqueeBox } from '../../Selection/MarqueeBox'
 import type { MediaItem } from '../../types'
 import type { MasonryProps } from './types'
 import './index.scss'
@@ -66,7 +67,7 @@ export const Masonry = ({
     [columnCount],
   )
 
-  const { getItemProps } = useGalleryManager({
+  const { getItemProps, marquee } = useGalleryManager({
     docs: items,
     calculateNextIndex,
     containerRef,
@@ -78,6 +79,7 @@ export const Masonry = ({
 
   return (
     <div className="media-gallery-masonry" ref={containerRef}>
+      <MarqueeBox marquee={marquee} />
       {columns.map((colItems, colIndex) => (
         <div key={colIndex} className="media-gallery-masonry__column">
           {colItems.map((item) => {
