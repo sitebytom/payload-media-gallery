@@ -7,6 +7,7 @@ export interface JustifiedProps {
   handleSelection?: (item: MediaItem) => void
   footer?: 'always' | 'hover'
   collectionLabel?: string
+  collectionSlug: string
 }
 
 export interface InternalItem extends MediaItem {

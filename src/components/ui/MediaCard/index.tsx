@@ -2,7 +2,7 @@ import { Button, CheckboxInput, ShimmerEffect } from '@payloadcms/ui'
 import Link from 'next/link'
 import type React from 'react'
 import { memo, useEffect, useRef, useState } from 'react'
-import { EditIcon, ExpandIcon, FileIcon } from '../../../icons'
+import { DragHandleIcon, EditIcon, ExpandIcon, FileIcon } from '../../../icons'
 import { isVideoMime } from '../../../utils/media'
 import type { ItemProps } from './types'
 import './index.scss'
@@ -26,6 +26,9 @@ export const MediaCard = memo(
     className,
     collectionLabel,
     lightboxEnabled = true,
+    dragAttributes,
+    dragListeners,
+    isDragging,
   }: ItemProps & { footer?: 'always' | 'hover'; lightboxEnabled?: boolean }) => {
     const linkRef = useRef<HTMLAnchorElement>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
@@ -173,7 +176,7 @@ export const MediaCard = memo(
         role="gridcell"
         aria-selected={isSelected}
         aria-label={title}
-        className={`media-gallery-grid__item-wrapper${selectedCount > 0 ? ' media-gallery-grid__item-wrapper--selection-mode' : ''} ${className || ''}`}
+        className={`media-gallery-grid__item-wrapper${selectedCount > 0 ? ' media-gallery-grid__item-wrapper--selection-mode' : ''} ${className || ''} ${isDragging ? 'media-gallery-grid__item-wrapper--dragging' : ''}`}
         tabIndex={-1}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -251,6 +254,15 @@ export const MediaCard = memo(
           />
         </div>
         <div className="media-gallery-grid__controls" title="">
+          {dragListeners && (
+            <div
+              className="media-gallery-grid__action-btn media-gallery-grid__drag-handle"
+              {...dragListeners}
+              {...dragAttributes}
+            >
+              <DragHandleIcon />
+            </div>
+          )}
           {onQuickEdit && (
             <Button
               buttonStyle="icon-label"

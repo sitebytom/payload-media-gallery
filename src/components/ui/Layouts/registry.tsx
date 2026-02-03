@@ -11,6 +11,7 @@ export interface ViewComponentProps {
   handleSelection?: (item: MediaItem) => void
   footer?: 'always' | 'hover'
   collectionLabel?: string
+  collectionSlug: string
 }
 
 export interface LayoutConfig {

@@ -54,11 +54,18 @@
           display: block; // Remove inline gap
         }
         
+        // Enforce square aspect ratio for non-media types (docs, audio)
+        &:has(.icon--document) {
+           aspect-ratio: 1 / 1;
+           width: 100%;
+        }
+
         .icon--document {
            display: flex;
            align-items: center;
            justify-content: center;
-           padding: 2rem; // Give documents some height
+           width: 100%;
+           height: 100%;
         }
       }
     }

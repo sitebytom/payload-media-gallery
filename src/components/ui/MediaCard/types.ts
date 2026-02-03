@@ -18,4 +18,8 @@ export interface ItemProps {
   variant?: 'default' | 'overlay'
   className?: string
   collectionLabel?: string
+  // Drag and Drop props
+  dragAttributes?: Record<string, unknown>
+  dragListeners?: Record<string, (...args: unknown[]) => unknown>
+  isDragging?: boolean
 }

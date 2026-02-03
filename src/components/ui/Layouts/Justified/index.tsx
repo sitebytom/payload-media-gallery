@@ -1,23 +1,51 @@
 'use client'
 
+import { closestCenter, DndContext } from '@dnd-kit/core'
+import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
+import { useConfig } from '@payloadcms/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGalleryManager } from '../../hooks/useGalleryManager'
+import { useGalleryOrder } from '../../hooks/useGalleryOrder'
 import { MediaCard } from '../../MediaCard'
 import { MarqueeBox } from '../../Selection/MarqueeBox'
+import { SortableItem } from '../../Sortable/SortableItem'
 import type { InternalItem, JustifiedProps, RowData } from './types'
 import './index.scss'
 
 export const Justified = ({
-  items,
+  items: initialItems,
   onQuickEdit,
   onLightbox,
   handleSelection,
   footer,
   collectionLabel,
+  collectionSlug,
 }: JustifiedProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
   const [rows, setRows] = useState<RowData[]>([])
+  const { config } = useConfig()
+
+  const collectionConfig = config.collections.find((c) => c.slug === collectionSlug)
+  const orderableEnabled =
+    !!collectionConfig?.orderable ||
+    !!(collectionConfig?.upload as unknown as { orderable?: boolean })?.orderable
+
+  // Optimistic items state
+  const [items, setItems] = useState(initialItems)
+
+  useEffect(() => {
+    setItems(initialItems)
+  }, [initialItems])
+
+  const { sensors, handleDragStart, handleDragEnd } = useGalleryOrder({
+    items,
+    collectionSlug,
+    onOrder: setItems,
+  })
+
+  // We only enable DnD if configured
+  const enableDnD = orderableEnabled
 
   // Responsive observation
   useEffect(() => {
@@ -192,12 +220,8 @@ export const Justified = ({
     columns: 4, // dummy value, calculateNextIndex handles this
   })
 
-  return (
-    <div
-      className="media-gallery-grid media-gallery-justified"
-      ref={containerRef}
-      style={{ width: '100%', position: 'relative' }}
-    >
+  const content = (
+    <>
       <MarqueeBox marquee={marquee} />
       {rows.map((row, rowIndex) => (
         <div
@@ -210,14 +234,8 @@ export const Justified = ({
             flexWrap: 'nowrap',
           }}
         >
-          {row.items.map(({ item, index, width, height }) => (
-            <div
-              key={item.id}
-              style={{
-                width: width,
-                height: height,
-              }}
-            >
+          {row.items.map(({ item, index, width, height }) => {
+            const card = (
               <MediaCard
                 key={item.id}
                 {...getItemProps(item, index)}
@@ -226,10 +244,62 @@ export const Justified = ({
                 collectionLabel={collectionLabel}
                 lightboxEnabled={!!onLightbox}
               />
-            </div>
-          ))}
+            )
+
+            const wrapperStyle = {
+              width: width,
+              height: height,
+            }
+
+            if (enableDnD) {
+              return (
+                <div key={item.id} style={wrapperStyle}>
+                  <SortableItem id={item.id} style={{ width: '100%', height: '100%' }}>
+                    {card}
+                  </SortableItem>
+                </div>
+              )
+            }
+
+            return (
+              <div key={item.id} style={wrapperStyle}>
+                {card}
+              </div>
+            )
+          })}
         </div>
       ))}
+    </>
+  )
+
+  if (enableDnD) {
+    return (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={items.map((i) => i.id)} strategy={rectSortingStrategy}>
+          <div
+            className="media-gallery-grid media-gallery-justified"
+            ref={containerRef}
+            style={{ width: '100%', position: 'relative' }}
+          >
+            {content}
+          </div>
+        </SortableContext>
+      </DndContext>
+    )
+  }
+
+  return (
+    <div
+      className="media-gallery-grid media-gallery-justified"
+      ref={containerRef}
+      style={{ width: '100%', position: 'relative' }}
+    >
+      {content}
     </div>
   )
 }

@@ -9,6 +9,7 @@ A Payload CMS 3 plugin that enhances the dashboard media collection view. It add
 - **Bulk Selection** with keyboard modifiers (Cmd/Ctrl/Shift + Click).
 - **Lightbox**: Immersive viewer with zoom, pan, keyboard navigation, and touch support.
 - **Rich Media**: Supports images, audio, and video playback with hover previews.
+- **Drag-and-drop ordering**: Reorder items by dragging cards (set `orderable: true` in collection config).
 - **Payload-Native UI** that fits right into your dashboard.
 
 ## Installation
@@ -62,22 +63,6 @@ export default buildConfig({
 | `edit` | `boolean` | `true` | Whether to enable the quick edit button. |
 | `disabled` | `boolean` | `false` | Whether to disable the plugin. |
 
-### Layout Configuration
-
-The `layouts` prop allows you to enable/disable specific views or change their display settings.
-
-```typescript
-mediaGalleryPlugin({
-  layouts: {
-    justified: true,
-    grid: {
-      footer: 'always', // 'hover' (default) or 'always'
-    },
-    list: false, // Disable list view toggle
-  },
-  lightbox: true,
-})
-```
 
 > ### **⚠️ Experimental**
 > An "as-is" personal concept for Payload CMS. Maintenance is not guaranteed.

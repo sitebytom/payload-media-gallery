@@ -1,6 +1,6 @@
 {
   "name": "@sitebytom/payload-media-gallery",
-  "version": "1.1.6",
+  "version": "1.2.0",
   "author": "sitebytom",
   "license": "MIT",
   "type": "module",
@@ -120,6 +120,9 @@
   },
   "registry": "https://registry.npmjs.org/",
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@sitebytom/use-zoom-pan": "^1.0.5"
   }
 }

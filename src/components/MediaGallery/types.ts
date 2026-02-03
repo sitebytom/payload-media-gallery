@@ -57,4 +57,5 @@ export interface PayloadMediaDoc {
   height?: number
   focalX?: number
   focalY?: number
+  sort?: number
 }

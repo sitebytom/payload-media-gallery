@@ -130,6 +130,7 @@ export interface UserAuthOperations {
  */
 export interface Media {
   id: string;
+  _order?: string | null;
   alt?: string | null;
   folder?: (string | null) | FolderInterface;
   updatedAt: string;
@@ -396,6 +397,7 @@ export interface PayloadMigration {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  _order?: T;
   alt?: T;
   folder?: T;
   updatedAt?: T;

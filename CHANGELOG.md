@@ -1,5 +1,11 @@
 # @sitebytom/payload-media-gallery
 
+## 1.2.0
+
+### Minor Changes
+
+- Implement native Drag-and-Drop Orderable functionality for Grid, Masonry, and Justified layouts using @dnd-kit (which payload already uses). Includes persistent sorting, visual drag handles, and layout-specific optimizations.
+
 ## 1.1.6
 
 ### Patch Changes

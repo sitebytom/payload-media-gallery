@@ -167,7 +167,9 @@
   &__expand-btn {
      @extend .media-gallery-grid__action-btn;
   }
-
+  &__drag-handle {
+    cursor: grab;
+  }
   &__item {
     display: block;
     height: 100%;
@@ -358,11 +360,11 @@
     // Handle documents
     &:has(.media-card__preview .icon--document) {
         .media-card__preview {
-            background-color: var(--theme-elevation-50);
+            background-color: var(--card-preview-bg-color, var(--theme-elevation-50));
             .icon--document svg {
                 width: 48px;
                 height: 48px;
-                color: var(--theme-elevation-500);
+                color: var(--card-preview-icon-color, var(--theme-elevation-500));
             }
         }
     }

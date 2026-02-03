@@ -63,7 +63,7 @@ export const useMarquee = ({
       // This prevents starting marquee on sidebars or other UI elements
       if (!isValidArea && !isCard && !containerRef.current?.contains(target)) return
 
-      startPos.current = { x: e.clientX, y: e.clientY }
+      startPos.current = { x: e.pageX, y: e.pageY }
       dragStartedOnCard.current = !!isCard
 
       // Cache item rects relative to document
@@ -115,17 +115,19 @@ export const useMarquee = ({
       if (!startPos.current) return
 
       const threshold = 5
+      // Use page coordinates for distance check
       const distance = Math.sqrt(
-        (e.clientX - startPos.current.x) ** 2 + (e.clientY - startPos.current.y) ** 2,
+        (e.pageX - startPos.current.x) ** 2 + (e.pageY - startPos.current.y) ** 2,
       )
 
       if (!marquee.active && distance < threshold) return
 
       // Viewport-relative for rendering (fixed position)
+      // We calculate where the start point is relative to the *current* viewport
       const clientX = e.clientX
       const clientY = e.clientY
-      const startClientX = startPos.current.x
-      const startClientY = startPos.current.y
+      const startClientX = startPos.current.x - window.scrollX
+      const startClientY = startPos.current.y - window.scrollY
 
       setMarquee({
         x: Math.min(clientX, startClientX),
@@ -138,10 +140,11 @@ export const useMarquee = ({
       // Document-relative for intersection
       const pageX = e.pageX
       const pageY = e.pageY
-      const x = Math.min(pageX, startPos.current.x + window.scrollX)
-      const y = Math.min(pageY, startPos.current.y + window.scrollY)
-      const width = Math.abs(pageX - (startPos.current.x + window.scrollX))
-      const height = Math.abs(pageY - (startPos.current.y + window.scrollY))
+      // startPos is already in page coordinates
+      const x = Math.min(pageX, startPos.current.x)
+      const y = Math.min(pageY, startPos.current.y)
+      const width = Math.abs(pageX - startPos.current.x)
+      const height = Math.abs(pageY - startPos.current.y)
 
       // Auto-scroll logic
       const scrollThreshold = 50
